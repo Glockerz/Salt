@@ -29,10 +29,12 @@ browser.)
 **2. Install it**
 
 ```sh
-flatpak install --user ./salt.flatpak
+flatpak install --user --reinstall ./salt.flatpak
 ```
 
 Answer `y` if Flatpak asks to install the GNOME runtime from Flathub.
+(`--reinstall` lets the same command replace an older Salt; your settings and
+Studio data are kept.)
 
 **3. Start Salt**
 

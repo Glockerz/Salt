@@ -26,7 +26,9 @@ flatpak remote-add --user --if-not-exists flathub \
     https://dl.flathub.org/repo/flathub.flatpakrepo || true
 
 echo "SALT_INSTALL=installing $FLATPAK"
-flatpak install --user --assumeyes "$FLATPAK"
+# --reinstall replaces an installed Salt (bundles refuse to install over
+# one otherwise); the user's data under ~/.var/app is kept.
+flatpak install --user --assumeyes --reinstall "$FLATPAK"
 
 echo "SALT_INSTALL_DONE=YES"
 echo "Run Salt from your application menu, or: flatpak run io.github.glockerz.Salt"
