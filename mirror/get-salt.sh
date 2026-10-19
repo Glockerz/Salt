@@ -19,9 +19,12 @@ command -v curl >/dev/null 2>&1 || { echo "GET_SALT_FAIL=curl-not-found" >&2; ex
 
 url=${1:-}
 if [ -z "$url" ]; then
+    # Payloads are numbered salt-001.txt, salt-002.txt, ...; take the newest
+    # one that passed its end-to-end check.
     url=$(curl -fsSL "$STATE_URL" \
-        | awk '$1 == "RESULT" && $2 == "salt-001.txt" {
-                   for (i = 3; i <= NF; i++) if ($i ~ /^url=/) u = substr($i, 5)
+        | awk '$1 == "RESULT" && $2 ~ /^salt-[0-9]+\.txt$/ && / E2E=PASS/ {
+                   n = $2; gsub(/[^0-9]/, "", n); n += 0
+                   for (i = 3; i <= NF; i++) if ($i ~ /^url=/ && n >= best) { best = n; u = substr($i, 5) }
                } END { print u }')
 fi
 [ -n "$url" ] || { echo "GET_SALT_FAIL=no-mirror-url (read it from $STATE_URL)" >&2; exit 1; }
