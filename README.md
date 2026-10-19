@@ -59,6 +59,30 @@ doesn't report dark mode (common with custom themes), pick the icon in
 **Settings → App Icon**, or set `icon = "white"` (or `"black"`) in
 `~/.var/app/io.github.glockerz.Salt/config/salt/config.toml`.
 
+### Install without GitHub (mirror)
+
+If you can't reach GitHub's releases, the same `salt.flatpak` is mirrored on a
+public paste host as a self-verifying payload. Each payload is a plain file
+whose download URL **rotates on every update**, so you read the current one
+from this repository rather than a fixed link:
+
+- open the latest commit on the `main` branch and click the ✓ status named
+  **`mirror/salt-001.txt`** — its link is the live download URL, or
+- read it from `mirror/state.json` on the
+  [`mirror-state`](https://github.com/Glockerz/Salt/tree/mirror-state) branch.
+
+Then download, extract and install (the payload checks its own SHA-256 before
+writing anything):
+
+```sh
+curl -fsSL <mirror-url> -o salt-001.txt   # the URL from the step above
+sh salt-001.txt "$PWD/salt"               # verifies and extracts into ./salt
+sh salt/install.sh                        # installs salt.flatpak (adds Flathub if needed)
+```
+
+Start Salt as in step 3 above. The payload carries the same build as the
+matching GitHub release.
+
 ### Commands
 
 | What | Command |
