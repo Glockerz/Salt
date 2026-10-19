@@ -63,6 +63,8 @@ pub struct Config {
 	pub icon: String,
 	/// Salt's appearance: "auto" follows the system, or "light"/"dark".
 	pub theme: String,
+	/// Install new Salt releases in the background (flatpak only).
+	pub auto_update: bool,
 }
 
 impl Default for Studio {
@@ -105,6 +107,7 @@ impl Default for Config {
 			debug: false,
 			icon: "auto".into(),
 			theme: "auto".into(),
+			auto_update: true,
 		}
 	}
 }

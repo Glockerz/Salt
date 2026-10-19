@@ -123,8 +123,13 @@ pub struct Release {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Asset {
+	#[serde(default)]
+	pub name: String,
 	pub content_type: String,
 	pub browser_download_url: String,
+	/// "sha256:<hex>", which GitHub computes for every upload.
+	#[serde(default)]
+	pub digest: Option<String>,
 }
 
 fn github<T: serde::de::DeserializeOwned>(path: &str) -> Result<T> {
@@ -147,4 +152,9 @@ pub fn kombucha_release(needle: &str) -> Result<Release> {
 
 pub fn kombucha_releases() -> Result<Vec<Release>> {
 	github("vinegarhq/kombucha/releases")
+}
+
+/// The latest release of Salt itself.
+pub fn salt_release() -> Result<Release> {
+	github("Glockerz/Salt/releases/latest")
 }

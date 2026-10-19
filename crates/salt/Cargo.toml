@@ -25,6 +25,7 @@ object.workspace = true
 log = { version = "0.4", features = ["std"] }
 toml = "1"
 liblzma = "0.4"
+sha2 = "0.10"
 gtk = { package = "gtk4", version = "0.11", features = ["v4_18"] }
 adw = { package = "libadwaita", version = "0.9", features = ["v1_7"] }
 

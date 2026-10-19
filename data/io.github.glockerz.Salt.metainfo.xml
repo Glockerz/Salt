@@ -21,6 +21,12 @@
 	</supports>
 	<content_rating type="oars-1.1"/>
 	<releases>
+		<release version="2.0.7" date="2026-10-19">
+			<description>
+				<p>Salt now updates itself: when Studio starts, it installs any newer release in the background and uses it from the next launch. Turn it off with the Automatic Updates setting.</p>
+				<p>Salt can also be installed from a mirror with one command that works in any shell.</p>
+			</description>
+		</release>
 		<release version="2.0.6" date="2026-10-19">
 			<description>
 				<p>When Studio closes, Salt now stops the Wine processes left behind (crash handler, WebView2, StudioMCP), which could keep hundreds of MB in use.</p>

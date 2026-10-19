@@ -12,6 +12,7 @@ mod mcp;
 mod migrate;
 mod netutil;
 mod robloxlog;
+mod selfupdate;
 mod studiorpc;
 mod sysinfo;
 mod ui;

@@ -23,6 +23,8 @@ finish-args:
   - --filesystem=xdg-run/.flatpak/dev.vencord.Vesktop:create
   # The white app icon for dark desktops, placed in the user's icon theme.
   - --filesystem=xdg-data/icons/hicolor:create
+  # Automatic updates: the host's flatpak reinstalls Salt's newer bundle.
+  - --talk-name=org.freedesktop.Flatpak
   # Lets "gamescope" work as a launcher with the Flathub gamescope extension.
   - --env=PATH=/app/bin:/usr/bin:/usr/lib/extensions/vulkan/gamescope/bin
 build-options:

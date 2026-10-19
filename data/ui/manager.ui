@@ -235,6 +235,12 @@
                                 <property name="title">Debug</property>
                               </object>
                             </child>
+                            <child>
+                              <object class="AdwSwitchRow" id="auto_update_row">
+                                <property name="subtitle">Install new Salt releases in the background when Studio starts</property>
+                                <property name="title">Automatic Updates</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>

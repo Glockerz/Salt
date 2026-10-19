@@ -158,6 +158,10 @@ impl Ui {
 			return glib::ExitCode::SUCCESS;
 		}
 
+		if self.core.cfg().auto_update {
+			self_update();
+		}
+
 		// The bootstrapper adds its window from a thread, possibly after
 		// GApplication would have quit for having no windows.
 		self.hold();
@@ -198,6 +202,21 @@ impl Ui {
 		app.set_as_default_for_type("x-scheme-handler/roblox-studio-auth")
 			.map_err(|e| err(format!("browser login set: {e}")))
 	}
+}
+
+/// Updates Salt in the background while Studio starts, and tells the
+/// user once the new version is installed. Failures are only logged:
+/// an unreachable GitHub shouldn't get in the way of opening Studio.
+fn self_update() {
+	std::thread::spawn(|| match crate::selfupdate::update() {
+		Ok(Some(ver)) => ui(move |u| {
+			let n = gio::Notification::new(&l("Salt has been updated"));
+			n.set_body(Some(&l("Salt {} will be used the next time you open it.").replace("{}", &ver)));
+			u.app.send_notification(Some("salt-updated"), &n);
+		}),
+		Ok(None) => {}
+		Err(e) => log::warn!("Salt update failed: {e}"),
+	});
 }
 
 fn panic_msg(p: &Box<dyn std::any::Any + Send>) -> String {

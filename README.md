@@ -116,8 +116,14 @@ flatpak uninstall --delete-data org.vinegarhq.Vinegar
 
 ### Updating
 
-Download and install the new `salt.flatpak` the same way (steps 1 and 2).
-Roblox Studio updates itself automatically when Salt starts.
+Salt updates itself: when you open Studio, it checks GitHub for a newer
+release in the background and installs it, and the next launch uses it. A
+notification tells you when that happens. Turn it off in **Settings → Behavior →
+Automatic Updates**, or with `auto_update = false` in `config.toml`.
+
+Salt 2.0.6 and older can't do this yet, so install 2.0.7 by hand once, the same
+way as above (steps 1 and 2), or with the mirror command. Roblox Studio itself
+updates automatically when Salt starts.
 
 ### Uninstalling
 

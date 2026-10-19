@@ -415,6 +415,7 @@ impl Manager {
 		switch("discord_row", st.discord_rpc, |c, v| c.studio.discord_rpc = v);
 		switch("gamemode_row", st.gamemode, |c, v| c.studio.gamemode = v);
 		switch("debug_row", cfg.debug, |c, v| c.debug = v);
+		switch("auto_update_row", cfg.auto_update, |c, v| c.auto_update = v);
 
 		self.bind_env(&core, b);
 		self.bind_fflags(&core, b);
