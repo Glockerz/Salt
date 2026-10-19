@@ -22,6 +22,8 @@ the Flathub repository set up, and up-to-date graphics drivers.
 curl -LO https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak
 ```
 
+(Without `curl`: `wget https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak`.)
+
 (Or download `salt.flatpak` from the
 [latest release](https://github.com/Glockerz/Salt/releases/latest) in your
 browser.)
@@ -74,6 +76,12 @@ fish:
 curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
 ```
 
+No `curl`? Use `wget` instead:
+
+```sh
+wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
+```
+
 If `raw.githubusercontent.com` is blocked too, find the payload URL by hand,
 either from the ✓ status named **`mirror/salt-001.txt`** on the latest `main`
 commit or from the `url=` on the `RESULT` line of `mirror/state.json` on the
@@ -81,8 +89,8 @@ commit or from the `url=` on the `RESULT` line of `mirror/state.json` on the
 Run these three commands, replacing `PAYLOAD_URL` in the first one with that address:
 
 ```sh
-curl -fsSL PAYLOAD_URL -o salt-001.txt
-sh salt-001.txt ./salt
+curl -fsSL PAYLOAD_URL -o salt.txt    # or: wget -qO salt.txt PAYLOAD_URL
+sh salt.txt ./salt
 sh salt/install.sh
 ```
 
@@ -109,6 +117,8 @@ and 2), then run:
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh | sh
 ```
+
+(Without `curl`: `wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh | sh`.)
 
 After that you can remove Vinegar:
 
