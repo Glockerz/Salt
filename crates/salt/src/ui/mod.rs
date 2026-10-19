@@ -34,6 +34,22 @@ pub fn resource(path: &str) -> String {
 	format!("{RESOURCE}/{path}")
 }
 
+/// Applies the appearance setting. "auto" follows the system's
+/// preference, or a GTK theme named as dark when there is none.
+pub fn apply_theme(theme: &str) {
+	let sm = adw::StyleManager::default();
+	sm.set_color_scheme(match theme {
+		"light" => adw::ColorScheme::ForceLight,
+		"dark" => adw::ColorScheme::ForceDark,
+		_ => {
+			let named_dark = gtk::Settings::default()
+				.and_then(|s| s.gtk_theme_name())
+				.is_some_and(|n| n.to_lowercase().contains("dark"));
+			if named_dark { adw::ColorScheme::PreferDark } else { adw::ColorScheme::Default }
+		}
+	});
+}
+
 /// Main-thread application state.
 pub struct Ui {
 	pub app: adw::Application,
@@ -288,6 +304,7 @@ pub fn run() -> glib::ExitCode {
 			Ok(c) => (c, None),
 			Err(e) => (Config::default(), Some(format!("config error: {e}"))),
 		};
+		apply_theme(&cfg.theme);
 		let core = Core::new(cfg, Arc::new(GtkFrontend));
 		core.apply_config();
 		crate::winehost::serve(core.clone());

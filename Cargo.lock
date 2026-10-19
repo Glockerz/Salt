@@ -1005,7 +1005,7 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rbxbin"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "log",
  "md-5",
@@ -1020,7 +1020,7 @@ dependencies = [
 
 [[package]]
 name = "rbxweb"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "log",
  "serde",
@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "salt"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "flate2",
  "glib-build-tools",
@@ -1125,7 +1125,7 @@ dependencies = [
 
 [[package]]
 name = "salt-layer"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "ash",
 ]
@@ -1597,7 +1597,7 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "wine"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "flate2",
  "libc",

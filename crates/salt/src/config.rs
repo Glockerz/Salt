@@ -17,6 +17,9 @@ pub const DESKTOP_RESOLUTION: &str = "1814x1024";
 /// Order must match the renderer model in the manager UI.
 pub const RENDERERS: &[&str] = &["D3D11", "D3D11FL10", "DXVK", "DXVK-Sarek", "Vulkan"];
 
+/// Order must match the appearance model in the manager UI.
+pub const THEMES: &[&str] = &["auto", "light", "dark"];
+
 /// Where Roblox's own log is read from.
 pub const LOG_SOURCES: &[&str] = &["file", "debugger"];
 
@@ -58,6 +61,8 @@ pub struct Config {
 	pub debug: bool,
 	/// Salt's icon: "auto" follows the desktop theme, or "black"/"white".
 	pub icon: String,
+	/// Salt's appearance: "auto" follows the system, or "light"/"dark".
+	pub theme: String,
 }
 
 impl Default for Studio {
@@ -99,6 +104,7 @@ impl Default for Config {
 			env: BTreeMap::new(),
 			debug: false,
 			icon: "auto".into(),
+			theme: "auto".into(),
 		}
 	}
 }
@@ -111,6 +117,8 @@ pub enum Error {
 	LogSource,
 	#[error("icon must be one of {:?}", crate::icon::SETTINGS)]
 	Icon,
+	#[error("theme must be one of {THEMES:?}")]
+	Theme,
 	#[error("{0}")]
 	Toml(#[from] toml::de::Error),
 	#[error("{0}")]
@@ -150,6 +158,9 @@ impl Config {
 		}
 		if !crate::icon::SETTINGS.contains(&self.icon.as_str()) {
 			return Err(Error::Icon);
+		}
+		if !THEMES.contains(&self.theme.as_str()) {
+			return Err(Error::Theme);
 		}
 		Ok(())
 	}

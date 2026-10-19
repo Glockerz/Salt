@@ -188,6 +188,21 @@
                               </object>
                             </child>
                             <child>
+                              <object class="AdwComboRow" id="theme_row">
+                                <property name="model">
+                                  <object class="GtkStringList">
+                                    <items>
+                                      <item translatable="yes">Automatic</item>
+                                      <item translatable="yes">Light</item>
+                                      <item translatable="yes">Dark</item>
+                                    </items>
+                                  </object>
+                                </property>
+                                <property name="subtitle" translatable="yes">Automatic follows your system's light or dark preference</property>
+                                <property name="title" translatable="yes">Appearance</property>
+                              </object>
+                            </child>
+                            <child>
                               <object class="AdwComboRow" id="icon_row">
                                 <property name="model">
                                   <object class="GtkStringList">

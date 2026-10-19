@@ -383,6 +383,19 @@ impl Manager {
 
 		entry("launcher_row", &st.launcher, |c, v| c.studio.launcher = v);
 
+		let theme: adw::ComboRow = obj(b, "theme_row");
+		theme.set_selected(config::THEMES.iter().position(|s| *s == cfg.theme).unwrap_or(0) as u32);
+		{
+			let core = core.clone();
+			theme.connect_selected_item_notify(move |r| {
+				if let Some(s) = config::THEMES.get(r.selected() as usize) {
+					core.cfg.write().unwrap().theme = (*s).into();
+					save(&core);
+					super::apply_theme(s);
+				}
+			});
+		}
+
 		let icon: adw::ComboRow = obj(b, "icon_row");
 		icon.set_selected(crate::icon::SETTINGS.iter().position(|s| *s == cfg.icon).unwrap_or(0) as u32);
 		{

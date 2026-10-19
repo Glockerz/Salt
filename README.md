@@ -49,6 +49,11 @@ Studio. Later launches take a second or two.
 To change settings, search your launcher for **Salt Settings**, or run
 `flatpak run io.github.glockerz.Salt manage`.
 
+Salt follows your system's light or dark preference; choose **Light** or
+**Dark** under **Settings → Appearance** to override it (or set
+`theme = "dark"` in the config file). Dark mode also darkens Studio's
+Windows-style dialogs and menus.
+
 Salt's icon is black on light themes and white on dark ones. If your desktop
 doesn't report dark mode (common with custom themes), pick the icon in
 **Settings → App Icon**, or set `icon = "white"` (or `"black"`) in
