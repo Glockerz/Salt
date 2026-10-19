@@ -127,7 +127,18 @@ and 2), then run:
 curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh | sh
 ```
 
-(Without `curl`: `wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh | sh`.)
+Without `curl`:
+
+```sh
+wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh | sh
+```
+
+On a fresh Void Linux install, which has neither:
+
+```sh
+xbps-fetch -o migrate-from-vinegar.sh https://raw.githubusercontent.com/Glockerz/Salt/main/scripts/migrate-from-vinegar.sh
+sh migrate-from-vinegar.sh
+```
 
 After that you can remove Vinegar:
 
