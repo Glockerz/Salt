@@ -22,7 +22,8 @@ the Flathub repository set up, and up-to-date graphics drivers.
 curl -LO https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak
 ```
 
-(Without `curl`: `wget https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak`.)
+(Without `curl`: `wget https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak`,
+or on Void Linux, which has neither: `xbps-fetch https://github.com/Glockerz/Salt/releases/latest/download/salt.flatpak`.)
 
 (Or download `salt.flatpak` from the
 [latest release](https://github.com/Glockerz/Salt/releases/latest) in your
@@ -82,6 +83,13 @@ No `curl`? Use `wget` instead:
 wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
 ```
 
+A fresh Void Linux install has neither; use its own `xbps-fetch`:
+
+```sh
+xbps-fetch -o get-salt.sh https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh
+sh get-salt.sh
+```
+
 If `raw.githubusercontent.com` is blocked too, find the payload URL by hand,
 either from the ✓ status named **`mirror/salt-001.txt`** on the latest `main`
 commit or from the `url=` on the `RESULT` line of `mirror/state.json` on the
@@ -90,6 +98,7 @@ Run these three commands, replacing `PAYLOAD_URL` in the first one with that add
 
 ```sh
 curl -fsSL PAYLOAD_URL -o salt.txt    # or: wget -qO salt.txt PAYLOAD_URL
+                                      # or: xbps-fetch -o salt.txt PAYLOAD_URL
 sh salt.txt ./salt
 sh salt/install.sh
 ```

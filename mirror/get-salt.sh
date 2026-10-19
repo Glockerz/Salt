@@ -4,6 +4,11 @@
 #   curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
 #   wget -qO- https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
 #
+# On a fresh Void Linux install, which has neither curl nor wget:
+#
+#   xbps-fetch -o get-salt.sh https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh
+#   sh get-salt.sh
+#
 # It looks up the current payload URL in mirror/state.json on the mirror-state
 # branch (the URL rotates on every update), downloads the payload, lets it
 # verify its own SHA-256 and extract, then runs the bundled install.sh.
@@ -16,14 +21,28 @@ set -eu
 
 STATE_URL="https://raw.githubusercontent.com/Glockerz/Salt/mirror-state/mirror/state.json"
 
-# fetch URL [FILE]: download with curl, or wget where curl isn't installed;
-# to stdout without FILE.
+# fetch URL [FILE]: download with curl, or wget, or xbps-fetch (the only one
+# a fresh Void Linux install has); to stdout without FILE.
 if command -v curl >/dev/null 2>&1; then
     fetch() { curl -fsSL "$1" -o "${2:--}"; }
 elif command -v wget >/dev/null 2>&1; then
     fetch() { wget -qO "${2:--}" "$1"; }
+elif command -v xbps-fetch >/dev/null 2>&1; then
+    # xbps-fetch can't write to stdout ("-o -" makes a file named "-"), and
+    # prints its progress there.
+    fetch() {
+        if [ -n "${2:-}" ]; then
+            xbps-fetch -o "$2" "$1" >/dev/null
+        else
+            _t=$(mktemp "${TMPDIR:-/tmp}/get-salt-fetch.XXXXXX")
+            xbps-fetch -o "$_t" "$1" >/dev/null && cat "$_t"
+            _rc=$?
+            rm -f "$_t"
+            return "$_rc"
+        fi
+    }
 else
-    echo "GET_SALT_FAIL=need curl or wget" >&2
+    echo "GET_SALT_FAIL=need curl, wget or xbps-fetch" >&2
     exit 1
 fi
 
