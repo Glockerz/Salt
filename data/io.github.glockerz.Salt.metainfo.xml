@@ -21,6 +21,12 @@
 	</supports>
 	<content_rating type="oars-1.1"/>
 	<releases>
+		<release version="2.0.5" date="2026-10-19">
+			<description>
+				<p>Studio starts faster: Wine boots once, alongside the update check, instead of twice.</p>
+				<p>Lost DNS replies are resent after 1 second instead of 5.</p>
+			</description>
+		</release>
 		<release version="2.0.4" date="2026-10-19">
 			<description>
 				<p>Dark mode: an Appearance setting (Automatic, Light or Dark) for Salt and its settings window.</p>

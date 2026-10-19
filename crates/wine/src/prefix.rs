@@ -192,8 +192,11 @@ impl Prefix {
 			.map_err(|e| Error::Other(format!("update timestamp: {e}")))
 	}
 
-	/// Ensures the prefix is up to date with the Wine installation and
-	/// ready to run applications, without showing Wine's update dialog.
+	/// Ensures the prefix is up to date with the Wine installation,
+	/// without showing Wine's update dialog.
+	///
+	/// This doesn't boot the prefix: the wineserver exits as soon as its
+	/// last program does, so a boot only helps while a [`Hold`] keeps it.
 	pub fn prepare(&self) -> Result<()> {
 		match self.needs_update() {
 			Err(e) => log::warn!("wine: Failed to determine Prefix status: {e}"),
@@ -203,7 +206,18 @@ impl Prefix {
 			}
 			Ok(false) => {}
 		}
-		self.start()
+		Ok(())
+	}
+
+	/// Boots the prefix in the background and keeps its wineserver
+	/// running until the returned [`Hold`] is dropped.
+	pub fn hold(&self) -> Result<Hold> {
+		// An idle cmd waiting on a pipe that only closes on drop.
+		let mut cmd = self.wine("cmd", ["/c", "set /p x="]);
+		cmd.quiet();
+		let mut c = cmd.build()?;
+		c.stdin(std::process::Stdio::piped());
+		Ok(Hold(Some(c.spawn()?)))
 	}
 
 	/// Ensures the wineserver is running and the prefix is booted. Does
@@ -251,6 +265,33 @@ impl Prefix {
 	/// periodically and on exit.
 	pub fn registry(&self) -> Result<Registry> {
 		Registry::load(&self.dir)
+	}
+}
+
+/// Keeps a prefix's wineserver running; see [`Prefix::hold`].
+///
+/// wineserver exits the moment its last client does, and starting it
+/// again (with the boot every new wineserver runs) takes over a second.
+/// Asking it to persist instead (`wineserver -p`) crashes Kombucha builds.
+pub struct Hold(Option<std::process::Child>);
+
+impl Drop for Hold {
+	fn drop(&mut self) {
+		let Some(mut child) = self.0.take() else {
+			return;
+		};
+		// Closing stdin ends cmd; reap it without blocking the caller.
+		drop(child.stdin.take());
+		std::thread::spawn(move || {
+			for _ in 0..50 {
+				if !matches!(child.try_wait(), Ok(None)) {
+					return;
+				}
+				std::thread::sleep(std::time::Duration::from_millis(100));
+			}
+			let _ = child.kill();
+			let _ = child.wait();
+		});
 	}
 }
 

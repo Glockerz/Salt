@@ -130,7 +130,7 @@ impl Cmd {
 		self
 	}
 
-	fn build(&self) -> Result<Command> {
+	pub(crate) fn build(&self) -> Result<Command> {
 		let dir = self.prefix.dir();
 		if !dir.as_os_str().is_empty() && !dir.is_absolute() {
 			return Err(Error::PrefixNotAbs);
@@ -277,15 +277,13 @@ impl Child {
 		self.inner.kill()
 	}
 
-	/// Waits for the command. Headless commands restart the wineserver
-	/// afterwards, as it was started without a display.
+	/// Waits for the command. Headless commands stop the wineserver
+	/// afterwards, as it was started without a display; the next program
+	/// starts a new one.
 	pub fn wait(mut self) -> Result<ExitStatus> {
 		let status = self.inner.wait()?;
 		if self.headless && self.prefix.running() {
 			let _ = self.prefix.server(&[server::KILL]);
-			if status.success() {
-				self.prefix.start()?;
-			}
 		}
 		Ok(status)
 	}

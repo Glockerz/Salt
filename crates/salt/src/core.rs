@@ -61,6 +61,8 @@ pub struct Core {
 	/// PID of the Studio process launched by this Salt, if any.
 	pub child: AtomicU32,
 	deployment: Mutex<Option<(Deployment, PathBuf)>>,
+	/// Keeps the wineserver booted by setup running until Studio starts.
+	hold: Mutex<Option<wine::Hold>>,
 	watcher: Mutex<Option<Arc<AtomicBool>>>,
 	weak: Weak<Core>,
 }
@@ -100,6 +102,7 @@ impl Core {
 			busy: AtomicBool::new(false),
 			child: AtomicU32::new(0),
 			deployment: Mutex::new(None),
+			hold: Mutex::new(None),
 			watcher: Mutex::new(None),
 			weak: weak.clone(),
 		})
@@ -189,6 +192,7 @@ impl Core {
 			log::warn!("/dev/ntsync is unavailable; Wine will synchronize threads through wineserver, which is slower");
 		}
 		if pfx.running() {
+			self.hold_server(&pfx);
 			return Ok(false);
 		}
 
@@ -197,6 +201,7 @@ impl Core {
 
 		// Only for new prefixes, to not discard an existing appdata.
 		if !first_run {
+			self.hold_server(&pfx);
 			return Ok(false);
 		}
 		let mut folders = wine::Key::with_path(r"HKCU\");
@@ -211,7 +216,17 @@ impl Core {
 		// Restart wineserver for wineboot to update app data internally.
 		pfx.boot(&[wine::boot::RESTART]).run().map_err(|e| err(format!("restart: {e}")))?;
 		self.restore_settings().map_err(|e| err(format!("restore: {e}")))?;
+		self.hold_server(&pfx);
 		Ok(true)
+	}
+
+	/// Boots the prefix now, alongside the update check, and keeps it
+	/// running so that Studio doesn't wait for a boot of its own.
+	fn hold_server(&self, pfx: &Prefix) {
+		match pfx.hold() {
+			Ok(h) => *self.hold.lock().unwrap() = Some(h),
+			Err(e) => log::warn!("Failed to keep the wineserver running: {e}"),
+		}
 	}
 
 	/// Installs a Kombucha Wine release ("Latest" or a tag).
@@ -410,10 +425,12 @@ impl Core {
 		let r = self.setup().map_err(|e| err(format!("setup: {e}")));
 		drop(busy);
 		if let Err(e) = r {
+			self.hold.lock().unwrap().take();
 			self.fe.show_bootstrapper(false);
 			return Err(e);
 		}
 		let r = self.execute(args);
+		self.hold.lock().unwrap().take();
 		self.fe.show_bootstrapper(false);
 		r
 	}
@@ -734,6 +751,13 @@ impl Core {
 		let mut child = cmd.spawn()?;
 		self.child.store(child.id(), Ordering::SeqCst);
 		self.count.fetch_add(1, Ordering::SeqCst);
+		// Studio connects to the wineserver within moments of starting.
+		if let Some(hold) = self.hold.lock().unwrap().take() {
+			std::thread::spawn(move || {
+				std::thread::sleep(std::time::Duration::from_secs(10));
+				drop(hold);
+			});
+		}
 		self.fe.show_bootstrapper(false);
 
 		if cfg.studio.gamemode

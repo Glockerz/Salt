@@ -12,7 +12,7 @@ pub mod registry;
 pub mod webview2;
 
 pub use cmd::{Cmd, LineSink};
-pub use prefix::Prefix;
+pub use prefix::{Hold, Prefix};
 pub use registry::{Data, Key, Registry, Value};
 
 /// Read the wineserver(1) man page for more details.

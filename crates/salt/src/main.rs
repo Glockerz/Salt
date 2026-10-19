@@ -24,9 +24,11 @@ fn main() -> ExitCode {
 	// routers drop one of them and every such lookup stalls for the full
 	// 5 s resolver timeout. Sequential queries avoid it, for Salt and
 	// for Wine, which resolves Studio's hosts through the same resolver.
+	// Any other lost reply is resent after 1 s rather than 5 s: Studio
+	// gives up on requests whose lookup takes over 3 s.
 	if std::env::var_os("RES_OPTIONS").is_none() {
 		// SAFETY: still single-threaded.
-		unsafe { std::env::set_var("RES_OPTIONS", "single-request-reopen") };
+		unsafe { std::env::set_var("RES_OPTIONS", "single-request-reopen timeout:1 attempts:3") };
 	}
 
 	match std::env::args().nth(1).as_deref() {
