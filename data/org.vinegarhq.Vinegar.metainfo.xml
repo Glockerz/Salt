@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>org.vinegarhq.Vinegar</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-3.0-only</project_license>
+	<name>Vinegar</name>
+	<summary>Run Roblox Studio on Linux</summary>
+	<description>
+		<p>Vinegar is an open-source, configurable, fast bootstrapper for running Roblox Studio on Linux.</p>
+	</description>
+	<url type="homepage">https://vinegarhq.org</url>
+	<url type="help">https://vinegarhq.org/Vinegar/Troubleshooting.html</url>
+	<url type="contribute">https://github.com/vinegarhq/vinegar</url>
+	<url type="vcs-browser">https://github.com/vinegarhq/vinegar</url>
+	<url type="bugtracker">https://github.com/vinegarhq/vinegar/issues</url>
+	<developer id="vinegarhq.org">
+		<name>VinegarHQ</name>
+	</developer>
+	<launchable type="desktop-id">org.vinegarhq.Vinegar.desktop</launchable>
+	<supports>
+		<control>pointing</control>
+		<control>keyboard</control>
+	</supports>
+
+	<screenshots>
+		<screenshot type="default">
+			<image>https://github.com/vinegarhq/vinegar/raw/v1.9.4/data/screenshots/studio.png</image>
+			<caption>Roblox Studio running under Vinegar</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://github.com/vinegarhq/vinegar/raw/v1.9.4/data/screenshots/studio-edit.png</image>
+			<caption>Roblox Studio running under Vinegar, displaying the script editor view</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://github.com/vinegarhq/vinegar/raw/v1.9.4/data/screenshots/manager.png</image>
+			<caption>Vinegar's main manager page</caption>
+		</screenshot>
+		<screenshot>
+			<image>https://github.com/vinegarhq/vinegar/raw/v1.9.4/data/screenshots/bootstrapper.png</image>
+			<caption>Vinegar's Studio bootstrapper in action</caption>
+		</screenshot>
+	</screenshots>
+
+	<releases>
+		<release version="1.9.4" date="2026-06-24">
+			<description>
+				<ul>
+					<li>Added Traditional Chinese and Russian translations</li>
+					<li>Refactor Roblox and Wine installation sanity</li>
+					<li>General bug fixes and improvements</li>
+					<li>Simplify Manager UI</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.9.3" date="2026-01-09">
+			<description>
+				<ul>
+					<li>Added German localization</li>
+					<li>General bug fixes and improvements</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.9.2" date="2026-01-01">
+			<description>
+				<ul>
+					<li>Added automatically backing up and restoring Studio authentication and settings</li>
+					<li>Added setting AppData and user folders to the system equivalent on new prefixes</li>
+					<li>Added multiple virtual desktops</li>
+					<li>Added a welcome screen on new installations</li>
+					<li>Added system-dependent Wine+Studio dark/light theme</li>
+					<li>Added localization support</li>
+					<li>Fixed Studio authenticated deployment channels</li>
+					<li>Fixed and improved Studio Rich Presence for Discord</li>
+					<li>Fixed WebView2 rendering</li>
+					<li>Fixed WineD3D on Nvidia GPUs</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.9.1" date="2025-10-14">
+			<description>
+				<ul>
+					<li>Hotfix release, fixing bugs with WebView and FFlags</li>
+					<li>Lower CPU requirements for Wine build</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.9.0" date="2025-10-13">
+			<description>
+				<ul>
+					<li>Redesign main settings page, adding a configurator</li>
+					<li>Added user authentication for private Studio deployments</li>
+					<li>Improved Edge WebView2 (un)installation</li>
+					<li>Improved bootstrapper logic flow</li>
+					<li>Show current deployment channel</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.8.1" date="2025-02-10">
+			<description>
+				<ul>
+					<li>Enabled Vulkan by default</li>
+					<li>Added opt-out configurable WebView installer</li>
+					<li>Added action to launch WINE configurator</li>
+					<li>Automatically set Studio theme based on libadwaita</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.8.0" date="2025-02-08">
+			<description>
+				<ul>
+					<li>Switched to GTK4+Libadwaita</li>
+					<li>Remove Roblox Player functionality</li>
+					<li>Removed WebView installer</li>
+					<li>Added Vulkan layer to accomodate Roblox Studio's Vulkan Renderer</li>
+					<li>Various refactoring and tweaking to WINE and Roblox management</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.7.8" date="2024-12-06">
+			<description>
+				<ul>
+					<li>Updated Roblox Studios new package manifest dictionary</li>
+					<li>Initial Proton and UMU support</li>
+					<li>Hide Roblox App and Player desktop entries</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.7.7" date="2024-10-09">
+			<description>
+				<ul>
+					<li>Always remind the user upon Player usage of the Wine block</li>
+					<li>Fixed log entry used for process termination of Studio</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.7.6" date="2024-10-01">
+			<description>
+				<ul>
+					<li>Updated Roblox Studios new package manifest dictionary</li>
+					<li>Fixed forced system process termination of Roblox</li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.7.5" date="2024-07-13">
+			<description>
+				<ul>
+					<li>Implemented Studio Rich Presence</li>
+					<li>Updated go modules, fixing CVE-2024-24792</li>
+					<li>Add warning message for running Player after the wine block on first run </li>
+				</ul>
+			</description>
+		</release>
+		<release version="1.7.4" date="2024-2-13">
+			<description>
+				<ul>
+					<li>Introduced WebView installer</li>
+					<li>Kill Roblox if it is still running after it's window is closed</li>
+					<li>Fixed multi-prefix DXVK installations</li>
+				</ul>
+			</description>
+		</release>
+	</releases>
+
+	<content_rating type="oars-1.1">
+		<content_attribute id="violence-cartoon">moderate</content_attribute>
+		<content_attribute id="violence-fantasy">moderate</content_attribute>
+		<content_attribute id="social-chat">moderate</content_attribute>
+		<content_attribute id="social-info">moderate</content_attribute>
+		<content_attribute id="social-audio">moderate</content_attribute>
+		<content_attribute id="social-contacts">intense</content_attribute>
+		<content_attribute id="money-purchasing">intense</content_attribute>
+		<content_attribute id="money-advertising">intense</content_attribute>
+		<content_attribute id="money-gambling">moderate</content_attribute>
+	</content_rating>
+</component>

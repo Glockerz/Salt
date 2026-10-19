@@ -1,0 +1,32 @@
+[package]
+name = "vinegar"
+description = "Roblox Studio launcher and manager for Linux"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[[bin]]
+name = "vinegar"
+path = "src/main.rs"
+
+[dependencies]
+wine.workspace = true
+rbxweb.workspace = true
+rbxbin.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ureq.workspace = true
+libc.workspace = true
+thiserror.workspace = true
+flate2.workspace = true
+tar.workspace = true
+object.workspace = true
+log = { version = "0.4", features = ["std"] }
+toml = "1"
+liblzma = "0.4"
+gtk = { package = "gtk4", version = "0.11", features = ["v4_18"] }
+adw = { package = "libadwaita", version = "0.9", features = ["v1_7"] }
+
+[build-dependencies]
+glib-build-tools = "0.22"

@@ -1,0 +1,16 @@
+[package]
+name = "vinegar-layer"
+description = "Vulkan layer fixing swapchain errors in Roblox Studio"
+version.workspace = true
+edition.workspace = true
+license = "GPL-3.0-only AND BSD-2-Clause"
+
+[lib]
+name = "VkLayer_VINEGAR_VinegarLayer"
+crate-type = ["cdylib"]
+
+[dependencies]
+ash = { version = "0.38", default-features = false }
+
+[dev-dependencies]
+ash = { version = "0.38", features = ["loaded"] }

@@ -1,0 +1,13 @@
+[package]
+name = "rbxweb"
+description = "Roblox web API client (the subset Vinegar uses)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+ureq.workspace = true
+thiserror.workspace = true
+log = "0.4"

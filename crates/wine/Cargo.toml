@@ -1,0 +1,16 @@
+[package]
+name = "wine"
+description = "Manage a Wineprefix and run Wine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+libc.workspace = true
+thiserror.workspace = true
+flate2.workspace = true
+tar.workspace = true
+object.workspace = true
+serde.workspace = true
+ureq.workspace = true
+log = "0.4"
