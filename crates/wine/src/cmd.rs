@@ -141,6 +141,9 @@ impl Cmd {
 
 		let mut c = Command::new(&self.program);
 		c.args(&self.args);
+		// Wine signals whole process groups when a prefix shuts down;
+		// sharing one with the launcher would kill the launcher too.
+		std::os::unix::process::CommandExt::process_group(&mut c, 0);
 		for (k, v) in &self.prefix.env {
 			c.env(k, v);
 		}

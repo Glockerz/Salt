@@ -289,6 +289,7 @@ pub fn run() -> glib::ExitCode {
 		};
 		let core = Core::new(cfg, Arc::new(GtkFrontend));
 		core.apply_config();
+		crate::winehost::serve(core.clone());
 
 		let u = Rc::new(Ui {
 			app: app.clone(),

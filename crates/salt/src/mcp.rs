@@ -11,25 +11,22 @@
 //!   leaving Studio hung.
 //! - The wrapper had to hardcode the Wine build and Studio version paths.
 //!
-//! This bridge never starts Wine itself. Until Studio's wineserver is
-//! up it answers the MCP handshake on its own with an empty tool list;
-//! once Studio is running it starts StudioMCP.exe, replays the
-//! handshake, proxies everything, and tells the client the tool list
-//! changed. When Studio exits it goes back to waiting, so the client
-//! never needs to reconnect.
+//! This bridge never runs Wine. Until Studio is running under Salt it
+//! answers the MCP handshake on its own with an empty tool list; once
+//! Studio is up it asks the Salt instance hosting Wine to start
+//! StudioMCP.exe there (see winehost.rs for why it must run there),
+//! replays the handshake, proxies everything, and tells the client the
+//! tool list changed. When Studio exits it goes back to waiting, so the
+//! client never needs to reconnect.
 
 use std::io::{BufRead, BufReader, Write};
-use std::path::PathBuf;
-use std::process::{Child, ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Sender, channel};
 use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
 
-use crate::config::Config;
-use crate::dirs::DIRS;
+use crate::winehost::{self, Remote};
 
-const PORT: u16 = 13469;
 const INIT_ID: &str = "salt-bridge-init";
 
 enum Event {
@@ -40,42 +37,13 @@ enum Event {
 	Tick,
 }
 
-/// The newest installed Studio's StudioMCP.exe.
-fn studio_mcp(cfg: &Config) -> Option<PathBuf> {
-	if !cfg.studio.forced_version.is_empty() {
-		let p = DIRS.versions.join(&cfg.studio.forced_version).join("StudioMCP.exe");
-		return p.exists().then_some(p);
-	}
-	std::fs::read_dir(&DIRS.versions)
-		.ok()?
-		.flatten()
-		.map(|e| e.path().join("StudioMCP.exe"))
-		.filter(|p| p.exists())
-		.max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
-}
-
-/// Reports whether something listens on the StudioMCP port.
-fn port_in_use() -> bool {
-	let needle = format!(":{PORT:04X} ");
-	["/proc/net/tcp", "/proc/net/tcp6"].iter().any(|f| {
-		std::fs::read_to_string(f).is_ok_and(|s| {
-			s.lines().skip(1).any(|l| {
-				let cols: Vec<&str> = l.split_whitespace().collect();
-				cols.len() > 3 && format!("{} ", cols[1]).ends_with(&needle) && cols[3] == "0A"
-			})
-		})
-	})
-}
-
 struct Bridge {
 	out: std::io::Stdout,
 	tx: Sender<Event>,
-	cfg: Config,
-	pfx: wine::Prefix,
 	/// The client's initialize request, replayed to StudioMCP.
 	init: Option<Value>,
 	initialized: bool,
-	child: Option<(u64, Child, ChildStdin)>,
+	child: Option<(u64, Remote)>,
 	generation: u64,
 	/// Waiting for StudioMCP's answer to the replayed initialize.
 	handshaking: bool,
@@ -98,7 +66,7 @@ impl Bridge {
 	}
 
 	fn to_child(&mut self, line: &str) -> bool {
-		if let Some((_, _, stdin)) = &mut self.child {
+		if let Some((_, Remote { stdin, .. })) = &mut self.child {
 			return stdin.write_all(line.as_bytes()).and_then(|_| stdin.write_all(b"\n")).and_then(|_| stdin.flush()).is_ok();
 		}
 		false
@@ -192,9 +160,7 @@ impl Bridge {
 		if self.child.as_ref().map(|c| c.0) != Some(generation) {
 			return;
 		}
-		if let Some((_, mut c, _)) = self.child.take() {
-			let _ = c.wait();
-		}
+		self.child = None;
 		log::warn!("StudioMCP exited; waiting for Studio");
 		self.handshaking = false;
 		// Requests sent to the dead server get no answer otherwise.
@@ -212,51 +178,22 @@ impl Bridge {
 			return;
 		}
 		self.next_check = Instant::now() + Duration::from_secs(1);
-		// Never start Wine from here; see the module documentation.
-		if !self.pfx.running() {
-			return;
-		}
-		let Some(exe) = studio_mcp(&self.cfg) else {
-			log::warn!("StudioMCP.exe not found in {}", DIRS.versions.display());
-			self.next_check = Instant::now() + Duration::from_secs(10);
-			return;
-		};
-		let Ok(wine) = self.pfx.wine_path() else {
-			log::warn!("Wine not found for the prefix");
-			return;
-		};
-
-		if port_in_use() {
-			log::warn!("Port {PORT} is in use; stopping stale StudioMCP");
-			let _ = self.pfx.wine("taskkill", ["/f", "/im", "StudioMCP.exe"]).quiet().run();
-			let deadline = Instant::now() + Duration::from_secs(5);
-			while port_in_use() && Instant::now() < deadline {
-				std::thread::sleep(Duration::from_millis(100));
-			}
-		}
-
-		log::info!("Starting {}", exe.display());
-		let mut cmd = Command::new(wine);
-		cmd.arg(&exe).arg("--stdio");
-		for (k, v) in &self.pfx.env {
-			cmd.env(k, v);
-		}
-		cmd.env("WINEPREFIX", self.pfx.dir())
-			.env("WINEDEBUG", "-all")
-			.stdin(Stdio::piped())
-			.stdout(Stdio::piped())
-			.stderr(Stdio::inherit());
-		let mut child = match cmd.spawn() {
-			Ok(c) => c,
+		let remote = match winehost::request() {
+			Ok(Some(r)) => r,
+			Ok(None) => return,
 			Err(e) => {
-				log::error!("Failed to start StudioMCP: {e}");
+				log::warn!("Starting StudioMCP failed: {e}");
+				self.next_check = Instant::now() + Duration::from_secs(5);
 				return;
 			}
 		};
+		log::info!("Studio is running; connected to StudioMCP");
 		self.generation += 1;
 		let generation = self.generation;
-		let stdin = child.stdin.take().expect("piped");
-		let stdout = child.stdout.take().expect("piped");
+		let stdout = match remote.stdout.try_clone() {
+			Ok(f) => f,
+			Err(e) => return log::error!("StudioMCP stdout: {e}"),
+		};
 		let tx = self.tx.clone();
 		std::thread::spawn(move || {
 			for line in BufReader::new(stdout).lines() {
@@ -272,45 +209,25 @@ impl Bridge {
 			}
 			let _ = tx.send(Event::ChildExit(generation));
 		});
-		self.child = Some((generation, child, stdin));
+		self.child = Some((generation, remote));
 
-		match self.init.clone() {
-			Some(mut init) => {
-				init["id"] = json!(INIT_ID);
-				self.handshaking = true;
-				self.to_child(&init.to_string());
-			}
-			// The client hasn't initialized yet; it will talk to
-			// StudioMCP directly.
-			None => {}
+		// Before the client initialized, it talks to StudioMCP directly.
+		if let Some(mut init) = self.init.clone() {
+			init["id"] = json!(INIT_ID);
+			self.handshaking = true;
+			self.to_child(&init.to_string());
 		}
 	}
 
 	fn shutdown(&mut self) {
-		if let Some((_, mut c, stdin)) = self.child.take() {
-			drop(stdin);
-			// StudioMCP exits on EOF; give it a moment, then make sure.
-			let deadline = Instant::now() + Duration::from_secs(2);
-			while Instant::now() < deadline {
-				if let Ok(Some(_)) = c.try_wait() {
-					return;
-				}
-				std::thread::sleep(Duration::from_millis(50));
-			}
-			let _ = c.kill();
-			let _ = c.wait();
-		}
+		// Closing stdin ends StudioMCP; closing the socket makes Salt
+		// kill it if it doesn't.
+		self.child = None;
 	}
 }
 
 pub fn run() -> std::process::ExitCode {
 	crate::logging::init_stderr_only();
-	let cfg = Config::load().unwrap_or_else(|e| {
-		log::error!("config error: {e}; using defaults");
-		Config::default()
-	});
-	crate::logging::set_debug(cfg.debug);
-	let pfx = cfg.prefix();
 
 	let (tx, rx) = channel();
 	{
@@ -343,8 +260,6 @@ pub fn run() -> std::process::ExitCode {
 	let mut b = Bridge {
 		out: std::io::stdout(),
 		tx,
-		cfg,
-		pfx,
 		init: None,
 		initialized: false,
 		child: None,
@@ -353,7 +268,7 @@ pub fn run() -> std::process::ExitCode {
 		pending: Vec::new(),
 		next_check: Instant::now(),
 	};
-	log::info!("Salt MCP bridge started (prefix {})", b.pfx.dir().display());
+	log::info!("Salt MCP bridge started; waiting for Studio via {}", winehost::socket_path().display());
 	b.try_start();
 
 	for ev in rx {
@@ -367,13 +282,4 @@ pub fn run() -> std::process::ExitCode {
 	}
 	b.shutdown();
 	std::process::ExitCode::SUCCESS
-}
-
-#[cfg(test)]
-mod tests {
-	#[test]
-	fn port_format() {
-		// 13469 is 0x349D in /proc/net/tcp's local_address column.
-		assert_eq!(format!(":{:04X} ", super::PORT), ":349D ");
-	}
 }

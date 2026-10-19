@@ -8,11 +8,13 @@ mod gamemode;
 mod i18n;
 mod logging;
 mod mcp;
+mod migrate;
 mod netutil;
 mod robloxlog;
 mod studiorpc;
 mod sysinfo;
 mod ui;
+mod winehost;
 
 use std::process::ExitCode;
 
@@ -28,6 +30,7 @@ fn main() -> ExitCode {
 
 	match std::env::args().nth(1).as_deref() {
 		Some("mcp") => return mcp::run(),
+		Some("fix-paths") => return migrate::run(&std::env::args().skip(2).collect::<Vec<_>>()),
 		Some("--version" | "version") => {
 			println!("salt {}", env!("CARGO_PKG_VERSION"));
 			return ExitCode::SUCCESS;

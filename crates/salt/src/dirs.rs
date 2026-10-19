@@ -32,9 +32,9 @@ pub struct Dirs {
 pub const TAG_PREFIX: &str = "kombucha-";
 
 pub static DIRS: LazyLock<Dirs> = LazyLock::new(|| {
-	let cache = xdg("XDG_CACHE_HOME", ".cache").join("vinegar");
-	let config = xdg("XDG_CONFIG_HOME", ".config").join("vinegar");
-	let data = xdg("XDG_DATA_HOME", ".local/share").join("vinegar");
+	let cache = xdg("XDG_CACHE_HOME", ".cache").join("salt");
+	let config = xdg("XDG_CONFIG_HOME", ".config").join("salt");
+	let data = xdg("XDG_DATA_HOME", ".local/share").join("salt");
 	Dirs {
 		overlays: config.join("overlays"),
 		downloads: cache.join("downloads"),

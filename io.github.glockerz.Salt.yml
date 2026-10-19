@@ -1,0 +1,45 @@
+# Flatpak manifest for Salt. Build and install locally with:
+#   flatpak run org.flatpak.Builder --user --install --force-clean build-dir io.github.glockerz.Salt.yml
+id: io.github.glockerz.Salt
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+command: salt
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=all
+  # Wine needs ptrace-like debugging features.
+  - --allow=devel
+  - --filesystem=xdg-documents
+  - --filesystem=xdg-pictures
+  # Discord Rich Presence (Discord flatpak and Vesktop).
+  - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  - --filesystem=xdg-run/.flatpak/dev.vencord.Vesktop:create
+  # Lets "gamescope" work as a launcher with the Flathub gamescope extension.
+  - --env=PATH=/app/bin:/usr/bin:/usr/lib/extensions/vulkan/gamescope/bin
+build-options:
+  append-path: /usr/lib/sdk/rust-stable/bin
+  # Cargo fetches crates during the build.
+  build-args:
+    - --share=network
+  env:
+    CARGO_HOME: /run/build/salt/cargo
+modules:
+  - name: salt
+    buildsystem: simple
+    build-commands:
+      - make native
+      - make install-native PREFIX=/app
+    sources:
+      - type: dir
+        path: .
+        skip:
+          - target
+          - build-dir
+          - .flatpak-builder
