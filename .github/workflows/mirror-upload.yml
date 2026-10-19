@@ -1,0 +1,113 @@
+name: mirror-upload
+on:
+  push:
+    paths:
+      - 'mirror/files/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+  statuses: write
+concurrency:
+  group: mirror-upload
+  cancel-in-progress: false
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: bake mirror/files onto off-repo hosts + per-file statuses
+        env:
+          UA: mirror-courier/1.0
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -u
+          : > mirror-state.txt
+          echo "run_id=$GITHUB_RUN_ID run_no=$GITHUB_RUN_NUMBER" >> mirror-state.txt
+          vsha() { curl -sfL --max-time 90 -A "$UA" "$1" | sha256sum | cut -d' ' -f1; }
+          up() { # $1=host $2=file -> prints candidate URL (RAW url for text pastes)
+            case "$1" in
+              pasters)  curl -sf --max-time 90 -A "$UA" --data-binary "@$2" https://paste.rs/ 2>/dev/null ;;
+              dpaste)   curl -sf --max-time 90 -A "$UA" --data-urlencode "content@$2" --data 'syntax=text' --data 'expiry_days=365' --data 'format=url' https://dpaste.org/api/ 2>/dev/null | sed 's#$#.txt#' ;;
+              cnet)     curl -sf --max-time 90 -A "$UA" --data-binary "@$2" https://paste.c-net.org/ 2>/dev/null ;;
+              0x0)      curl -sf --max-time 90 -A "$UA" -F "file=@$2" https://0x0.st 2>/dev/null ;;
+              tmpfiles) curl -sf --max-time 90 -A "$UA" -F "file=@$2" https://tmpfiles.org/api/v1/upload 2>/dev/null | grep -o '"url":"[^"]*"' | cut -d'"' -f4 | sed 's#tmpfiles.org/#tmpfiles.org/dl/#' ;;
+              x0)       curl -sf --max-time 90 -A "$UA" -F "file=@$2" https://x0.at/ 2>/dev/null ;;
+            esac
+          }
+          try_upload() { # $1=file $2=sha -> sets U_URL/U_HOST; 2 passes, flaky hosts
+            tf="$1"; tsha="$2"; U_URL=""; U_HOST=""
+            for attempt in 1 2; do
+              for h in pasters dpaste cnet tmpfiles 0x0 x0; do
+                u=$(up "$h" "$tf" | tr -d '\r\n' | tail -n 1)
+                case "$u" in https://*) ;; *) continue ;; esac
+                s=$(vsha "$u")
+                if [ "$s" = "$tsha" ]; then U_URL="$u"; U_HOST="$h"; return 0; fi
+              done
+              [ "$attempt" = "1" ] && sleep 15
+            done
+            return 1
+          }
+          post_status() { # $1=name $2=state $3=desc $4=target
+            curl -sf --max-time 30 -A "$UA" -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+              -d "{\"state\":\"$2\",\"context\":\"mirror/$1\",\"description\":\"$3\",\"target_url\":\"$4\"}" \
+              && echo "STATUS_POST=OK $1" >> mirror-state.txt || echo "STATUS_POST=FAIL $1" >> mirror-state.txt
+          }
+          # Phase A: upload + immediate verify
+          : > manifest.txt
+          shopt -s nullglob
+          for f in mirror/files/*; do
+            case "$(basename "$f")" in *.sha256|.*) continue ;; esac
+            name=$(basename "$f"); LS=$(sha256sum "$f" | cut -d' ' -f1); LB=$(wc -c < "$f")
+            echo "FILE $name bytes=$LB sha=$LS" >> mirror-state.txt
+            if try_upload "$f" "$LS"; then
+              echo "UP $name host=$U_HOST url=$U_URL" >> mirror-state.txt
+              echo "$name $LS $U_URL $U_HOST" >> manifest.txt
+            else
+              echo "UP $name FAIL_ALL_HOSTS" >> mirror-state.txt
+              post_status "$name" failure "upload failed all hosts" "https://example.com"
+            fi
+          done
+          [ -s manifest.txt ] || { echo "MANIFEST=EMPTY"; cat mirror-state.txt; exit 1; }
+          # Phase B: delayed re-verify; re-upload any that died
+          sleep 40
+          : > manifest2.txt
+          while read -r name LS u h; do
+            s=$(vsha "$u")
+            if [ "$s" = "$LS" ]; then
+              echo "$name $LS $u $h" >> manifest2.txt
+            else
+              echo "RECHECK_FAIL $name host=$h - re-uploading" >> mirror-state.txt
+              f="mirror/files/$name"
+              if try_upload "$f" "$LS"; then
+                echo "UP $name host=$U_HOST url=$U_URL (recheck replacement)" >> mirror-state.txt
+                echo "$name $LS $U_URL $U_HOST" >> manifest2.txt
+              else
+                echo "UP $name FAIL_AFTER_RECHECK" >> mirror-state.txt
+                post_status "$name" failure "died after recheck; re-upload failed" "$u"
+              fi
+            fi
+          done < manifest.txt
+          # Phase C: final statuses + RESULT lines
+          FAIL=0
+          while read -r name LS u h; do
+            s=$(vsha "$u")
+            if [ "$s" = "$LS" ]; then
+              echo "RESULT $name host=$h url=$u sha=${LS:0:12} E2E=PASS" >> mirror-state.txt
+              post_status "$name" success "host=$h url=$u E2E=PASS" "$u"
+            else
+              echo "RESULT $name E2E=FAIL" >> mirror-state.txt
+              post_status "$name" failure "final verify failed" "$u"
+              FAIL=1
+            fi
+          done < manifest2.txt
+          cat mirror-state.txt
+          [ "$FAIL" = "0" ] || exit 1
+      - name: push state to mirror-state branch (best effort)
+        if: always()
+        run: |
+          git config user.name "mirror-courier" && git config user.email "mirror-courier@users.noreply.github.com"
+          mkdir -p mirror && cp mirror-state.txt mirror/state.json
+          git add mirror/state.json && git commit -m "mirror state (courier run $GITHUB_RUN_NUMBER)" || true
+          git push --force origin "HEAD:mirror-state" || echo "STATE_PUSH=FAIL"

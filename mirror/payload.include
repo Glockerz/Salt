@@ -1,0 +1,21 @@
+# Payload contents for tools/make_payload.sh — one entry per line.
+# Paths are relative to the repository root; blank lines and # comments are ignored.
+#
+#   path                 copy path into the payload at the same path
+#   path => dest         copy path into the payload at dest
+#
+# Example:
+#   README.md
+#   src => app/src
+#   config/default.toml
+#
+# Keep payloads self-contained and free of secrets: paste-host bytes are public
+# (unlisted, but readable by anyone with the URL). Nothing is packed until you
+# add or uncomment an entry below.
+#
+# List targeted paths, not ".": a payload should carry only what the target
+# needs. Never include .git, build outputs, or mirror/files/ itself.
+
+# Salt's installable payload: the flatpak plus a one-command installer.
+salt.flatpak
+mirror/install-salt.sh => install.sh
