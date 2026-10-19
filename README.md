@@ -63,25 +63,26 @@ doesn't report dark mode (common with custom themes), pick the icon in
 
 If you can't reach GitHub's releases, the same `salt.flatpak` is mirrored on a
 public paste host as a self-verifying payload. Each payload is a plain file
-whose download URL **rotates on every update**. Paste this whole block into a
-terminal: it looks up the current URL, downloads the payload, checks its
-SHA-256, extracts it and installs `salt.flatpak` (adding Flathub if needed):
+whose download URL **rotates on every update**. This one command looks up the
+current URL, downloads the payload, checks its SHA-256, extracts it and installs
+`salt.flatpak` (adding Flathub if needed). It works the same in bash, zsh and
+fish:
 
 ```sh
-url=$(curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/mirror-state/mirror/state.json \
-  | sed -n 's/^RESULT salt-001\.txt .* url=\([^ ]*\) .*/\1/p' | tail -n 1)
-echo "mirror: $url"
-curl -fsSL "$url" -o salt-001.txt
-sh salt-001.txt "$PWD/salt"
-sh salt/install.sh
+curl -fsSL https://raw.githubusercontent.com/Glockerz/Salt/main/mirror/get-salt.sh | sh
 ```
 
-If `raw.githubusercontent.com` is blocked too, find the URL by hand, either from
-the ✓ status named **`mirror/salt-001.txt`** on the latest `main` commit or from
-`mirror/state.json` on the
-[`mirror-state`](https://github.com/Glockerz/Salt/tree/mirror-state) branch (the
-`url=` on the `RESULT` line). Then run the last four lines with `url=` set to
-that address, e.g. `url=https://paste.c-net.org/...`.
+If `raw.githubusercontent.com` is blocked too, find the payload URL by hand,
+either from the ✓ status named **`mirror/salt-001.txt`** on the latest `main`
+commit or from the `url=` on the `RESULT` line of `mirror/state.json` on the
+[`mirror-state`](https://github.com/Glockerz/Salt/tree/mirror-state) branch.
+Run these three commands, replacing `PAYLOAD_URL` in the first one with that address:
+
+```sh
+curl -fsSL PAYLOAD_URL -o salt-001.txt
+sh salt-001.txt ./salt
+sh salt/install.sh
+```
 
 Start Salt as in step 3 above. The payload carries the same build as the
 matching GitHub release.
