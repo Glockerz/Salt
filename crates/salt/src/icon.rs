@@ -1,8 +1,12 @@
-//! Salt's icon comes in a black and a white version. Inside Salt the
-//! version follows the theme; for the application menu and taskbar,
-//! which show one installed icon, Salt places the white version in the
-//! user's icon directory (which takes priority over the installed black
-//! one) while it is selected, and removes it otherwise.
+//! Salt's icon comes in a black and a white version.
+//!
+//! The logo inside Salt's windows contrasts with the windows' own
+//! background, which can differ from the desktop's (libadwaita stays
+//! light when the desktop doesn't report a dark preference). The
+//! taskbar and menu icon follows the icon setting; for the menu, which
+//! shows one installed icon, Salt places the white version in the user's
+//! icon directory (which takes priority over the installed black one)
+//! while it is selected, and removes it otherwise.
 
 use std::path::PathBuf;
 
@@ -17,6 +21,11 @@ pub enum Variant {
 }
 
 impl Variant {
+	/// The version that stands out on Salt's own window background.
+	pub fn for_windows(sm: &adw::StyleManager) -> Variant {
+		if sm.is_dark() { Variant::White } else { Variant::Black }
+	}
+
 	/// Icon name in Salt's resource icon theme.
 	pub fn icon_name(self) -> &'static str {
 		match self {
@@ -64,10 +73,10 @@ fn user_icons() -> PathBuf {
 	crate::dirs::home().join(".local/share/icons/hicolor")
 }
 
-/// Shows the variant in Salt's windows and the desktop's menus.
-pub fn apply(v: Variant) {
+/// Sets the taskbar and menu icon to `v`, and the in-window logo to `logo`.
+pub fn apply(v: Variant, logo: Variant) {
 	gtk::Window::set_default_icon_name(v.icon_name());
-	crate::ui::local(|u| u.boot.logo.set_icon_name(Some(v.icon_name())));
+	crate::ui::local(|u| u.boot.logo.set_icon_name(Some(logo.icon_name())));
 	if let Err(e) = desktop(v) {
 		log::debug!("Desktop icon not updated: {e}");
 	}
@@ -110,7 +119,7 @@ pub fn follow(app: &adw::Application, setting: impl Fn() -> String + 'static) ->
 	let sm = app.style_manager();
 	let update = {
 		let sm = sm.clone();
-		move || apply(choose(&setting(), system_dark(&sm)))
+		move || apply(choose(&setting(), system_dark(&sm)), Variant::for_windows(&sm))
 	};
 	update();
 	let update = std::rc::Rc::new(update);

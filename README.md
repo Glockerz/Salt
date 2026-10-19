@@ -46,13 +46,24 @@ The first time, Salt shows a welcome page. Close it and open Salt again: it
 downloads Wine and Roblox Studio (about 1 GB, a few minutes), then starts
 Studio. Later launches take a second or two.
 
-To change settings, right-click Salt's icon and choose **Settings**, or run
+To change settings, search your launcher for **Salt Settings**, or run
 `flatpak run io.github.glockerz.Salt manage`.
 
 Salt's icon is black on light themes and white on dark ones. If your desktop
 doesn't report dark mode (common with custom themes), pick the icon in
 **Settings → App Icon**, or set `icon = "white"` (or `"black"`) in
 `~/.var/app/io.github.glockerz.Salt/config/salt/config.toml`.
+
+### Commands
+
+| What | Command |
+|---|---|
+| Start Roblox Studio | `flatpak run io.github.glockerz.Salt` |
+| Open settings | `flatpak run io.github.glockerz.Salt manage` |
+| Edit the config file | `xdg-open ~/.var/app/io.github.glockerz.Salt/config/salt/config.toml` |
+| Open the logs folder | `xdg-open ~/.var/app/io.github.glockerz.Salt/cache/salt/logs` |
+| Stop Studio and Wine | `flatpak kill io.github.glockerz.Salt` |
+| Show the version | `flatpak run io.github.glockerz.Salt --version` |
 
 ### Coming from Vinegar
 

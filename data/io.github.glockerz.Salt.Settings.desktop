@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Salt Settings
+GenericName=Studio Launcher Settings
+Comment=Configure Salt, the Roblox Studio launcher
+Exec=salt manage
+Icon=io.github.glockerz.Salt
+Terminal=false
+Type=Application
+Categories=Game;Settings;
+Keywords=roblox;studio;salt;settings;config;

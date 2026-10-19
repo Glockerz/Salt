@@ -39,6 +39,7 @@ install-native:
 	sed 's#"library_path": ".*"#"library_path": "$(PREFIX)/lib/libVkLayer_SALT_SaltLayer.so"#' \
 		data/VkLayer_SALT_SaltLayer.json > $(DESTDIR)$(PREFIX)/share/vulkan/explicit_layer.d/VkLayer_SALT_SaltLayer.json
 	install -Dm644 data/$(APP).desktop -t $(DESTDIR)$(PREFIX)/share/applications
+	install -Dm644 data/$(APP).Settings.desktop -t $(DESTDIR)$(PREFIX)/share/applications
 	install -Dm644 data/$(APP).metainfo.xml -t $(DESTDIR)$(PREFIX)/share/metainfo
 	install -Dm644 data/$(APP)-studio.xml -t $(DESTDIR)$(PREFIX)/share/mime/packages
 	for s in 32 48 64 128 256 512; do install -Dm644 data/icons/black/$${s}x$${s}/salt.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${s}x$${s}/apps/$(APP).png; done
