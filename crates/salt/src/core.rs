@@ -815,6 +815,60 @@ impl Core {
 		}
 	}
 
+	/// Ends the Wine processes left in Salt's sandbox once no Studio runs
+	/// there.
+	///
+	/// When Studio exits, its wineserver may go first. With ntsync, the
+	/// remaining processes (crash handler, WebView2, StudioMCP, services)
+	/// wait in the kernel and never notice; they keep hundreds of MB and
+	/// the sandbox alive, and an orphaned StudioMCP keeps its MCP bridge
+	/// connected to nothing. Only done under Flatpak, where /proc shows
+	/// just this sandbox.
+	pub fn reap_sandbox(&self) {
+		if !INFO.flatpak {
+			return;
+		}
+		let me = std::process::id();
+		let others = || -> Vec<(i32, String)> {
+			let Ok(rd) = std::fs::read_dir("/proc") else {
+				return Vec::new();
+			};
+			rd.flatten()
+				.filter_map(|e| e.file_name().to_str()?.parse::<i32>().ok())
+				.filter(|&pid| pid > 1 && pid as u32 != me)
+				.filter_map(|pid| {
+					let cmd = std::fs::read(format!("/proc/{pid}/cmdline")).ok()?;
+					// Kernel threads and zombies have none.
+					(!cmd.is_empty()).then(|| (pid, String::from_utf8_lossy(&cmd).replace('\0', " ")))
+				})
+				.collect()
+		};
+		let procs = others();
+		if procs.is_empty() {
+			return;
+		}
+		if procs.iter().any(|(_, c)| c.contains("RobloxStudioBeta.exe")) {
+			return;
+		}
+		// TERM lets a live wineserver save the registry.
+		for (pid, cmd) in &procs {
+			log::info!("Stopping leftover process pid={pid} cmd={cmd}");
+			// SAFETY: plain kill(2) on a PID in this sandbox.
+			unsafe { libc::kill(*pid, libc::SIGTERM) };
+		}
+		let deadline = std::time::Instant::now() + std::time::Duration::from_secs(2);
+		while std::time::Instant::now() < deadline {
+			if others().is_empty() {
+				return;
+			}
+			std::thread::sleep(std::time::Duration::from_millis(100));
+		}
+		for (pid, _) in others() {
+			// SAFETY: as above.
+			unsafe { libc::kill(pid, libc::SIGKILL) };
+		}
+	}
+
 	// ---- Manager actions ----------------------------------------------
 
 	pub fn kill_prefix(&self) -> Result {

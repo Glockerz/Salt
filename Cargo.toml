@@ -3,7 +3,7 @@ resolver = "3"
 members = ["crates/wine", "crates/rbxweb", "crates/rbxbin", "crates/salt", "crates/layer"]
 
 [workspace.package]
-version = "2.0.5"
+version = "2.0.6"
 edition = "2024"
 license = "GPL-3.0-only"
 repository = "https://github.com/Glockerz/Salt"

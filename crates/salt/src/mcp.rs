@@ -209,6 +209,15 @@ impl Bridge {
 			}
 			let _ = tx.send(Event::ChildExit(generation));
 		});
+		let host_gone = match remote.host_gone() {
+			Ok(f) => f,
+			Err(e) => return log::error!("Salt connection: {e}"),
+		};
+		let tx = self.tx.clone();
+		std::thread::spawn(move || {
+			host_gone();
+			let _ = tx.send(Event::ChildExit(generation));
+		});
 		self.child = Some((generation, remote));
 
 		// Before the client initialized, it talks to StudioMCP directly.

@@ -209,6 +209,15 @@ fn handle(core: &Core, conn: UnixStream) -> std::io::Result<()> {
 		.stdout(Stdio::from(stdout))
 		.stderr(Stdio::null())
 		.process_group(0);
+	// If Salt dies, nothing would stop StudioMCP otherwise; this thread
+	// lives exactly as long as it.
+	// SAFETY: prctl is async-signal-safe.
+	unsafe {
+		cmd.pre_exec(|| {
+			libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGKILL);
+			Ok(())
+		});
+	}
 	let mut child = match cmd.spawn() {
 		Ok(c) => c,
 		Err(e) => return reply(&format!("ERR {e}\n")),
@@ -249,6 +258,21 @@ pub struct Remote {
 	pub stdout: std::fs::File,
 	/// Held open for StudioMCP's lifetime; closing it stops StudioMCP.
 	_conn: UnixStream,
+}
+
+impl Remote {
+	/// Returns a function that blocks until StudioMCP exits or the
+	/// hosting Salt goes away.
+	///
+	/// StudioMCP's stdout alone can't tell: if the host dies, StudioMCP
+	/// may outlive it, holding the pipe open without ever answering.
+	pub fn host_gone(&self) -> std::io::Result<impl FnOnce() + Send + 'static> {
+		let conn = self._conn.try_clone()?;
+		Ok(move || {
+			let mut line = String::new();
+			let _ = BufReader::new(conn).read_line(&mut line);
+		})
+	}
 }
 
 fn pipe() -> std::io::Result<(OwnedFd, OwnedFd)> {

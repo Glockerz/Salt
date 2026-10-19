@@ -182,6 +182,7 @@ impl Ui {
 		if self.core.count.load(std::sync::atomic::Ordering::Relaxed) > 1 {
 			log::warn!("Handing off Wineserver control!");
 		} else {
+			self.core.reap_sandbox();
 			log::info!("Goodbye!");
 		}
 		logging::flush();
