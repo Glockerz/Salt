@@ -41,7 +41,7 @@ install-native:
 	install -Dm644 data/$(APP).desktop -t $(DESTDIR)$(PREFIX)/share/applications
 	install -Dm644 data/$(APP).metainfo.xml -t $(DESTDIR)$(PREFIX)/share/metainfo
 	install -Dm644 data/$(APP)-studio.xml -t $(DESTDIR)$(PREFIX)/share/mime/packages
-	install -Dm644 data/icons/salt.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/$(APP).svg
+	for s in 32 48 64 128 256 512; do install -Dm644 data/icons/black/$${s}x$${s}/salt.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/$${s}x$${s}/apps/$(APP).png; done
 	install -Dm644 data/icons/roblox-studio.svg $(DESTDIR)$(PREFIX)/share/icons/hicolor/scalable/apps/$(APP).studio.svg
 	for l in $(LOCALES); do install -Dm644 target/locale/$$l/LC_MESSAGES/salt.mo -t $(DESTDIR)$(PREFIX)/share/locale/$$l/LC_MESSAGES; done
 

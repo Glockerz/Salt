@@ -188,6 +188,21 @@
                               </object>
                             </child>
                             <child>
+                              <object class="AdwComboRow" id="icon_row">
+                                <property name="model">
+                                  <object class="GtkStringList">
+                                    <items>
+                                      <item translatable="yes">Automatic</item>
+                                      <item translatable="yes">Black</item>
+                                      <item translatable="yes">White</item>
+                                    </items>
+                                  </object>
+                                </property>
+                                <property name="subtitle" translatable="yes">Automatic follows your desktop's light or dark theme</property>
+                                <property name="title" translatable="yes">App Icon</property>
+                              </object>
+                            </child>
+                            <child>
                               <object class="AdwSwitchRow" id="discord_row">
                                 <property name="subtitle">Display your development status on your Discord profile</property>
                                 <property name="title">Share Activity on Discord</property>

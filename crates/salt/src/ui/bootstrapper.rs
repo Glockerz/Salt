@@ -10,6 +10,7 @@ use super::resource;
 /// The bootstrapper window. Main thread only.
 pub struct Bootstrapper {
 	pub win: adw::Window,
+	pub logo: gtk::Image,
 	pub status: gtk::Label,
 	pub info: gtk::Label,
 	pub progress: gtk::ProgressBar,
@@ -31,6 +32,7 @@ impl Bootstrapper {
 		});
 		Bootstrapper {
 			win,
+			logo: b.object("logo").expect("logo"),
 			status: b.object("status").expect("status"),
 			info: b.object("info").expect("info"),
 			progress: b.object("progress").expect("progress"),

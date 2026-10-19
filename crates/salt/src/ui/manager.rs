@@ -377,6 +377,23 @@ impl Manager {
 		}
 
 		entry("launcher_row", &st.launcher, |c, v| c.studio.launcher = v);
+
+		let icon: adw::ComboRow = obj(b, "icon_row");
+		icon.set_selected(crate::icon::SETTINGS.iter().position(|s| *s == cfg.icon).unwrap_or(0) as u32);
+		{
+			let core = core.clone();
+			icon.connect_selected_item_notify(move |r| {
+				if let Some(s) = crate::icon::SETTINGS.get(r.selected() as usize) {
+					core.cfg.write().unwrap().icon = (*s).into();
+					save(&core);
+					super::local(|u| {
+						if let Some(f) = &*u.update_icon.borrow() {
+							f();
+						}
+					});
+				}
+			});
+		}
 		switch("discord_row", st.discord_rpc, |c, v| c.studio.discord_rpc = v);
 		switch("gamemode_row", st.gamemode, |c, v| c.studio.gamemode = v);
 		switch("debug_row", cfg.debug, |c, v| c.debug = v);

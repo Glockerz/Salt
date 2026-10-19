@@ -42,6 +42,8 @@ pub struct Ui {
 	pub mgr: RefCell<Option<Rc<manager::Manager>>>,
 	holds: RefCell<Vec<gio::ApplicationHoldGuard>>,
 	version: String,
+	/// Re-applies the icon after its setting changes.
+	pub update_icon: RefCell<Option<Box<dyn Fn()>>>,
 }
 
 thread_local! {
@@ -269,7 +271,6 @@ pub fn run() -> glib::ExitCode {
 		if let Some(display) = gtk::gdk::Display::default() {
 			gtk::IconTheme::for_display(&display).add_resource_path(&resource("icons"));
 		}
-		gtk::Window::set_default_icon_name("io.github.glockerz.Salt");
 		log::info!(
 			"System information cpu={:?} mem={} distro={:?} display={:?} ntsync={}",
 			INFO.cpu,
@@ -298,8 +299,12 @@ pub fn run() -> glib::ExitCode {
 			mgr: RefCell::new(None),
 			holds: RefCell::new(Vec::new()),
 			version: app_version(),
+			update_icon: RefCell::new(None),
 		});
 		UI.with_borrow_mut(|slot| *slot = Some(u.clone()));
+		let core = u.core.clone();
+		let update = crate::icon::follow(app, move || core.cfg().icon);
+		*u.update_icon.borrow_mut() = Some(Box::new(update));
 
 		if let Some(e) = cfg_err {
 			u.show_error(&e);

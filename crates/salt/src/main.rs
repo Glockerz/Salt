@@ -6,6 +6,7 @@ mod dirs;
 mod discord;
 mod gamemode;
 mod i18n;
+mod icon;
 mod logging;
 mod mcp;
 mod migrate;

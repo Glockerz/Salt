@@ -1,6 +1,9 @@
 # Salt
 
-<img src="data/icons/salt.svg" width="96" align="right" alt="">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="data/icons/white/256x256/salt.png">
+  <img src="data/icons/black/256x256/salt.png" width="96" align="right" alt="Salt logo">
+</picture>
 
 Salt runs **Roblox Studio on Linux**. It is a Rust rewrite of
 [Vinegar](https://github.com/vinegarhq/vinegar) by VinegarHQ, focused on speed
@@ -46,6 +49,11 @@ Studio. Later launches take a second or two.
 To change settings, right-click Salt's icon and choose **Settings**, or run
 `flatpak run io.github.glockerz.Salt manage`.
 
+Salt's icon is black on light themes and white on dark ones. If your desktop
+doesn't report dark mode (common with custom themes), pick the icon in
+**Settings → App Icon**, or set `icon = "white"` (or `"black"`) in
+`~/.var/app/io.github.glockerz.Salt/config/salt/config.toml`.
+
 ### Coming from Vinegar
 
 Your Studio login, settings and installation can be moved over, so nothing
@@ -71,7 +79,10 @@ Roblox Studio updates itself automatically when Salt starts.
 
 ```sh
 flatpak uninstall --delete-data io.github.glockerz.Salt
+rm -f ~/.local/share/icons/hicolor/*/apps/io.github.glockerz.Salt.png
 ```
+
+(The second line removes the white icon Salt adds on dark desktops, if any.)
 
 ## Roblox Studio MCP (Claude Code and other AI tools)
 

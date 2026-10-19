@@ -4,6 +4,9 @@
     <file alias="metainfo.xml" preprocess="xml-stripblanks">io.github.glockerz.Salt.metainfo.xml</file>
     <file preprocess="xml-stripblanks">ui/bootstrapper.ui</file>
     <file preprocess="xml-stripblanks">ui/manager.ui</file>
-    <file alias="icons/scalable/apps/io.github.glockerz.Salt.svg">icons/salt.svg</file>
+    <file alias="icons/128x128/apps/salt-black.png">icons/black/128x128/salt.png</file>
+    <file alias="icons/256x256/apps/salt-black.png">icons/black/256x256/salt.png</file>
+    <file alias="icons/128x128/apps/salt-white.png">icons/white/128x128/salt.png</file>
+    <file alias="icons/256x256/apps/salt-white.png">icons/white/256x256/salt.png</file>
   </gresource>
 </gresources>

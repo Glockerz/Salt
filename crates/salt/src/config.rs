@@ -56,6 +56,8 @@ pub struct Config {
 	/// Merged into studio.env; kept for backwards compatibility.
 	pub env: BTreeMap<String, String>,
 	pub debug: bool,
+	/// Salt's icon: "auto" follows the desktop theme, or "black"/"white".
+	pub icon: String,
 }
 
 impl Default for Studio {
@@ -96,6 +98,7 @@ impl Default for Config {
 			studio: Studio::default(),
 			env: BTreeMap::new(),
 			debug: false,
+			icon: "auto".into(),
 		}
 	}
 }
@@ -106,6 +109,8 @@ pub enum Error {
 	Renderer,
 	#[error("log_source must be one of {LOG_SOURCES:?}")]
 	LogSource,
+	#[error("icon must be one of {:?}", crate::icon::SETTINGS)]
+	Icon,
 	#[error("{0}")]
 	Toml(#[from] toml::de::Error),
 	#[error("{0}")]
@@ -142,6 +147,9 @@ impl Config {
 		}
 		if !LOG_SOURCES.contains(&self.studio.log_source.as_str()) {
 			return Err(Error::LogSource);
+		}
+		if !crate::icon::SETTINGS.contains(&self.icon.as_str()) {
+			return Err(Error::Icon);
 		}
 		Ok(())
 	}

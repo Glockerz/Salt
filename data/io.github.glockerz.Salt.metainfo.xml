@@ -21,6 +21,11 @@
 	</supports>
 	<content_rating type="oars-1.1"/>
 	<releases>
+		<release version="2.0.1" date="2026-10-19">
+			<description>
+				<p>New app icon in black and white versions, following the desktop's light or dark theme, with a setting to choose one manually.</p>
+			</description>
+		</release>
 		<release version="2.0.0" date="2026-10-19">
 			<description>
 				<p>Rewrite of Vinegar in Rust: faster setup and installs, Studio logs read from files instead of Wine's debug channel, fixes for DNS stalls and log spam, and an MCP bridge for Roblox Studio.</p>
