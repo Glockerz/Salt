@@ -41,7 +41,7 @@ pub trait Frontend: Send + Sync {
 	fn pulse(&self, on: bool);
 	fn show_bootstrapper(&self, show: bool);
 	fn error(&self, msg: String);
-	/// Makes Vinegar the browser login handler.
+	/// Makes Salt the browser login handler.
 	fn set_mime(&self) -> Result;
 	fn dark(&self) -> bool;
 	/// Called when the Wine root changes outside the manager's editing.
@@ -58,7 +58,7 @@ pub struct Core {
 	pub count: AtomicUsize,
 	/// A bootstrapper run is in progress.
 	pub busy: AtomicBool,
-	/// PID of the Studio process launched by this Vinegar, if any.
+	/// PID of the Studio process launched by this Salt, if any.
 	pub child: AtomicU32,
 	deployment: Mutex<Option<(Deployment, PathBuf)>>,
 	watcher: Mutex<Option<Arc<AtomicBool>>>,
@@ -164,7 +164,7 @@ impl Core {
 		if line.contains("to unimplemented function advapi32.dll.SystemFunction036") {
 			let _ = self.pfx().server(&[wine::server::KILL, "9"]);
 			self.fe
-				.error(l("Your Wineprefix is corrupt! Please delete all data in Vinegar's settings."));
+				.error(l("Your Wineprefix is corrupt! Please delete all data in Salt's settings."));
 		}
 		logging::write(Level::Wine, &line);
 	}
@@ -663,7 +663,7 @@ impl Core {
 		};
 		log::info!("Checking DXVK against={version}");
 		let pfx = self.pfx();
-		// DXVK may be installed next to Studio, or (older Vinegar) in the
+		// DXVK may be installed next to Studio, or (older Salt) in the
 		// prefix itself; either works.
 		let mut native = None;
 		let installed = match wine::dxvk::dll_version(&dir.join("d3d11.dll")) {
@@ -781,7 +781,7 @@ impl Core {
 		}
 	}
 
-	/// Kills the Studio process this Vinegar launched.
+	/// Kills the Studio process this Salt launched.
 	pub fn kill_child(&self) {
 		let pid = self.child.load(Ordering::SeqCst);
 		if pid != 0 {

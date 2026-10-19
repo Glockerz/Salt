@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::discord::{Activity, Assets, Client, Timestamps};
 
+// Salt's Discord application, which provides the presence images.
 const APP_ID: &str = "1159891020956323923";
 const OPEN: &str = "[FLog::CloseDataModel] Setting place ID ";
 const EDIT: &str = "[FLog::RobloxDocManager] Setting current doc to type ";
@@ -42,7 +43,7 @@ impl StudioRpc {
 					presence: Activity {
 						assets: Assets {
 							large_image: "studio".into(),
-							large_text: "Vinegar".into(),
+							large_text: "Salt".into(),
 							..Default::default()
 						},
 						..Default::default()

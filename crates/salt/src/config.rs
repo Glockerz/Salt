@@ -1,4 +1,4 @@
-//! Vinegar's configuration, compatible with the Go version's config.toml.
+//! Salt's configuration, compatible with the Go version's config.toml.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -209,7 +209,7 @@ impl Studio {
 fn layer_dir() -> Option<PathBuf> {
 	let exe = std::env::current_exe().ok()?;
 	let dir = exe.parent()?.join("../share/vulkan/explicit_layer.d");
-	dir.join("VkLayer_VINEGAR_VinegarLayer.json").exists().then_some(dir)
+	dir.join("VkLayer_SALT_SaltLayer.json").exists().then_some(dir)
 }
 
 impl Config {
@@ -274,7 +274,7 @@ impl Config {
 		);
 		env.insert("WINE_D3D_CONFIG".into(), format!("renderer={d3d}"));
 		if self.studio.renderer == "Vulkan" {
-			env.insert("VK_LOADER_LAYERS_ENABLE".into(), "VK_LAYER_VINEGAR_VinegarLayer".into());
+			env.insert("VK_LOADER_LAYERS_ENABLE".into(), "VK_LAYER_SALT_SaltLayer".into());
 			if let Some(dir) = layer_dir() {
 				env.insert("VK_ADD_LAYER_PATH".into(), dir.display().to_string());
 			}

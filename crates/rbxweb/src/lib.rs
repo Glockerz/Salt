@@ -1,5 +1,5 @@
 //! Roblox web API client, ported from `github.com/sewnie/rbxweb` and
-//! limited to the endpoints Vinegar uses.
+//! limited to the endpoints Salt uses.
 
 use std::fmt;
 use std::sync::Mutex;

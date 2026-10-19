@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/glockerz/Salt/">
+    <file alias="metainfo.xml" preprocess="xml-stripblanks">io.github.glockerz.Salt.metainfo.xml</file>
+    <file preprocess="xml-stripblanks">ui/bootstrapper.ui</file>
+    <file preprocess="xml-stripblanks">ui/manager.ui</file>
+    <file alias="icons/scalable/apps/io.github.glockerz.Salt.svg">icons/salt.svg</file>
+  </gresource>
+</gresources>

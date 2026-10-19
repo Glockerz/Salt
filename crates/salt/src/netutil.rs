@@ -17,7 +17,7 @@ pub fn agent() -> &'static ureq::Agent {
 		ureq::Agent::config_builder()
 			.timeout_connect(Some(Duration::from_secs(15)))
 			.timeout_recv_response(Some(Duration::from_secs(30)))
-			.user_agent(concat!("vinegar/", env!("CARGO_PKG_VERSION")))
+			.user_agent(concat!("salt/", env!("CARGO_PKG_VERSION")))
 			.build()
 			.new_agent()
 	})

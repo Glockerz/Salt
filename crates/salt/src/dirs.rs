@@ -1,5 +1,5 @@
-//! XDG directory layout, identical to the Go version so data, prefixes
-//! and configuration are shared with existing installations.
+//! XDG directory layout. The directories keep Salt's names, so Salt
+//! shares data, prefixes and configuration with existing Salt installs.
 
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;

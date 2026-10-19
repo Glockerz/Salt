@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>io.github.glockerz.Salt</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>GPL-3.0-only</project_license>
+	<name>Salt</name>
+	<summary>Run Roblox Studio on Linux</summary>
+	<description>
+		<p>Salt is a fast, open-source bootstrapper for running Roblox Studio on Linux, written in Rust. It is a rewrite of Vinegar by VinegarHQ and shares its data and configuration.</p>
+	</description>
+	<url type="homepage">https://github.com/Glockerz/Salt</url>
+	<url type="vcs-browser">https://github.com/Glockerz/Salt</url>
+	<url type="bugtracker">https://github.com/Glockerz/Salt/issues</url>
+	<developer id="io.github.glockerz">
+		<name>Glockerz</name>
+	</developer>
+	<launchable type="desktop-id">io.github.glockerz.Salt.desktop</launchable>
+	<supports>
+		<control>pointing</control>
+		<control>keyboard</control>
+	</supports>
+	<content_rating type="oars-1.1"/>
+	<releases>
+		<release version="2.0.0" date="2026-10-19">
+			<description>
+				<p>Rewrite of Vinegar in Rust: faster setup and installs, Studio logs read from files instead of Wine's debug channel, fixes for DNS stalls and log spam, and an MCP bridge for Roblox Studio.</p>
+			</description>
+		</release>
+	</releases>
+</component>

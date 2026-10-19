@@ -1,40 +1,51 @@
-# Vinegar (Rust)
+# Salt
 
-A Rust rewrite of [Vinegar](https://github.com/vinegarhq/vinegar), the Roblox
-Studio launcher for Linux, including the Go libraries it depends on
-(`sewnie/wine`, `sewnie/rbxbin`, `sewnie/rbxweb`) and its Vulkan layer.
+<img src="data/icons/salt.svg" width="96" align="right" alt="">
 
-It reads and writes the same `config.toml`, prefix, versions and cache
-directories as Vinegar 1.x, so it can be used in place of it on existing data.
+Salt runs Roblox Studio on Linux. It is a Rust rewrite of
+[Vinegar](https://github.com/vinegarhq/vinegar) by VinegarHQ, including the Go
+libraries Vinegar depends on (`sewnie/wine`, `sewnie/rbxbin`, `sewnie/rbxweb`)
+and its Vulkan layer. Salt is not affiliated with or endorsed by VinegarHQ.
+
+Salt reads and writes the same `config.toml`, prefix, versions and cache
+directories as Vinegar 1.x, so it can be used in place of Vinegar on existing
+data. It also uses Vinegar's [Kombucha](https://github.com/vinegarhq/kombucha)
+Wine builds.
 
 | Crate | Ports | |
 |---|---|---|
 | `crates/wine` | `sewnie/wine` | prefixes, commands, registry parser/exporter, DXVK, WebView2 |
 | `crates/rbxweb` | `sewnie/rbxweb` | the Roblox web API endpoints Vinegar uses |
 | `crates/rbxbin` | `sewnie/rbxbin` | deployments, mirrors, package install |
-| `crates/vinegar` | `cmd/vinegar`, `internal/*` | the app: GTK UI, bootstrapper, MCP bridge |
+| `crates/salt` | `cmd/vinegar`, `internal/*` | the app: GTK UI, bootstrapper, MCP bridge |
 | `crates/layer` | `layer/vinegar_layer.cpp` | the Vulkan swapchain layer |
 
 ## Building
 
-Builds run inside the GNOME 50 SDK, the runtime of the Vinegar flatpak, so
-the binary links against the same libraries it runs with:
+Salt currently runs inside the Vinegar flatpak (`org.vinegarhq.Vinegar`, from
+Flathub), using its runtime, sandbox and data. Builds run inside the matching
+GNOME 50 SDK, so the binary links against the same libraries it runs with:
 
 ```sh
 flatpak install --user flathub org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
 ./sdk.sh make          # release build
 ./sdk.sh make test     # unit tests
-./sdk.sh make install  # into ~/.var/app/org.vinegarhq.Vinegar/data/vinegar-rs
+./sdk.sh make install  # into ~/.var/app/org.vinegarhq.Vinegar/data/salt
 ```
 
 `make install` also creates two launchers in `~/.local/bin`:
 
-- `vinegar-rs [run|manage] [args]` runs this build inside the Vinegar flatpak.
-- `vinegar-mcp` is a stdio MCP server for Roblox Studio (see below).
+- `salt [run|manage] [args]` runs Salt inside the Vinegar flatpak.
+- `salt-mcp` is a stdio MCP server for Roblox Studio (see below).
 
-`make native install-native` builds for the host instead.
+`make native && make install-native PREFIX=/usr` builds and installs for the
+host instead, as `io.github.glockerz.Salt` (Kombucha needs glibc).
 
-## Changes from the Go version
+Inside the flatpak, Salt uses the app ID `org.vinegarhq.Vinegar`: the sandbox
+only lets it own D-Bus names under that ID, and it routes Studio's browser
+login callbacks (opened through Vinegar's desktop file) to Salt.
+
+## Changes from Vinegar
 
 ### Stability and responsiveness
 
@@ -87,7 +98,7 @@ flatpak install --user flathub org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.r
 
 ## MCP bridge
 
-`vinegar mcp` (the `vinegar-mcp` launcher) is a stdio MCP server that bridges
+`salt mcp` (the `salt-mcp` launcher) is a stdio MCP server that bridges
 to Studio's `StudioMCP.exe`.
 
 Running `StudioMCP.exe` directly from a wrapper started the prefix's
@@ -105,10 +116,17 @@ still holds port 13469 before starting a new one.
 For Claude Code:
 
 ```sh
-claude mcp add --scope user Roblox_Studio -- ~/.local/bin/vinegar-mcp
+claude mcp add --scope user Roblox_Studio -- ~/.local/bin/salt-mcp
 ```
 
 ## License
 
-GPL-3.0, like Vinegar and the libraries it ports. The Vulkan layer is
-additionally based on baldurk/sample_layer (BSD-2-Clause).
+GPL-3.0-only, like Vinegar and the libraries it ports. Salt is derived from
+[vinegarhq/vinegar](https://github.com/vinegarhq/vinegar) and
+[sewnie/wine](https://github.com/sewnie/wine),
+[sewnie/rbxbin](https://github.com/sewnie/rbxbin) and
+[sewnie/rbxweb](https://github.com/sewnie/rbxweb); its UI definitions and
+translations come from Vinegar. The Vulkan layer is based on Vinegar's layer
+(by tunis and V3L0C1T13S) and baldurk/sample_layer (BSD-2-Clause).
+
+Discord Rich Presence uses Vinegar's Discord application ID for its images.

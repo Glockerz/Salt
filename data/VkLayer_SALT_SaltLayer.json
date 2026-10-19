@@ -1,0 +1,15 @@
+{
+  "file_format_version" : "1.0.0",
+  "layer" : {
+    "name": "VK_LAYER_SALT_SaltLayer",
+    "type": "GLOBAL",
+    "library_path": "libVkLayer_SALT_SaltLayer.so",
+    "api_version": "1.0.0",
+    "implementation_version": "1",
+    "description": "Salt layer",
+    "functions": {
+      "vkGetInstanceProcAddr": "SaltLayer_GetInstanceProcAddr",
+      "vkGetDeviceProcAddr": "SaltLayer_GetDeviceProcAddr"
+    }
+  }
+}

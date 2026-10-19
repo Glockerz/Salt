@@ -1,5 +1,5 @@
 [package]
-name = "vinegar"
+name = "salt"
 description = "Roblox Studio launcher and manager for Linux"
 version.workspace = true
 edition.workspace = true
@@ -7,7 +7,7 @@ license.workspace = true
 build = "build.rs"
 
 [[bin]]
-name = "vinegar"
+name = "salt"
 path = "src/main.rs"
 
 [dependencies]

@@ -1,12 +1,12 @@
 [package]
-name = "vinegar-layer"
-description = "Vulkan layer fixing swapchain errors in Roblox Studio"
+name = "salt-layer"
+description = "Vulkan layer fixing swapchain errors in Roblox Studio (Salt)"
 version.workspace = true
 edition.workspace = true
 license = "GPL-3.0-only AND BSD-2-Clause"
 
 [lib]
-name = "VkLayer_VINEGAR_VinegarLayer"
+name = "VkLayer_SALT_SaltLayer"
 crate-type = ["cdylib"]
 
 [dependencies]

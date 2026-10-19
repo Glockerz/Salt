@@ -125,7 +125,7 @@ impl log::Log for Logger {
 		// Dependencies' debug chatter (TLS, HTTP internals) is noise.
 		let ours = r
 			.module_path()
-			.is_some_and(|m| ["vinegar", "wine", "rbxbin", "rbxweb"].iter().any(|p| m.starts_with(p)));
+			.is_some_and(|m| ["salt", "wine", "rbxbin", "rbxweb"].iter().any(|p| m.starts_with(p)));
 		if !ours && level < Level::Warn {
 			return;
 		}
@@ -174,7 +174,7 @@ pub fn init() {
 		.ok();
 }
 
-/// Keeps the 16 most recent logs that Vinegar created.
+/// Keeps the 16 most recent logs that Salt created.
 fn cleanup() -> std::io::Result<()> {
 	let mut logs: Vec<_> = fs::read_dir(&DIRS.logs)?
 		.filter_map(|e| e.ok())

@@ -11,7 +11,7 @@ unsafe extern "C" {
 	fn textdomain(domain: *const c_char) -> *mut c_char;
 }
 
-const DOMAIN: &CStr = c"vinegar";
+const DOMAIN: &CStr = c"salt";
 
 /// Locale directory: next to the executable (`../share/locale`) for
 /// relocatable installs, otherwise the build-time location.
@@ -23,7 +23,7 @@ fn locale_dir() -> PathBuf {
 	{
 		return dir;
 	}
-	PathBuf::from(option_env!("VINEGAR_LOCALEDIR").unwrap_or("/usr/share/locale"))
+	PathBuf::from(option_env!("SALT_LOCALEDIR").unwrap_or("/usr/share/locale"))
 }
 
 pub fn init() {

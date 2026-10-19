@@ -21,8 +21,14 @@ use crate::i18n::l;
 use crate::logging;
 use crate::sysinfo::INFO;
 
-pub const APP_ID: &str = "org.vinegarhq.Vinegar";
-const RESOURCE: &str = "/org/vinegarhq/Vinegar";
+/// Inside the Salt flatpak, the sandbox only lets Salt own D-Bus names
+/// under the flatpak's app ID; using it exactly also routes Studio's
+/// browser-login callbacks (opened through Salt's desktop file) to Salt.
+pub const APP_ID: &str = match option_env!("SALT_APP_ID") {
+	Some(id) => id,
+	None => "io.github.glockerz.Salt",
+};
+const RESOURCE: &str = "/io/github/glockerz/Salt";
 
 pub fn resource(path: &str) -> String {
 	format!("{RESOURCE}/{path}")
@@ -163,12 +169,12 @@ impl Ui {
 		logging::flush();
 	}
 
-	/// Sets Vinegar as the handler for Studio's browser login.
+	/// Sets Salt as the handler for Studio's browser login.
 	fn set_mime(&self) -> Result {
 		let app = gio::AppInfo::all()
 			.into_iter()
 			.find(|a| a.id().is_some_and(|id| id.starts_with(APP_ID)))
-			.ok_or_else(|| err("Where is Vinegar's desktop file? Is this a proper installation?"))?;
+			.ok_or_else(|| err("Where is Salt's desktop file? Is this a proper installation?"))?;
 		log::info!("Setting as default application for browser login");
 		app.set_as_default_for_type("x-scheme-handler/roblox-studio-auth")
 			.map_err(|e| err(format!("browser login set: {e}")))
@@ -254,11 +260,16 @@ fn app_version() -> String {
 }
 
 pub fn run() -> glib::ExitCode {
-	gio::resources_register_include!("vinegar.gresource").expect("register resources");
+	gio::resources_register_include!("salt.gresource").expect("register resources");
 
 	let app = adw::Application::new(Some(APP_ID), gio::ApplicationFlags::HANDLES_COMMAND_LINE);
+	glib::set_application_name("Salt");
 
 	app.connect_startup(|app| {
+		if let Some(display) = gtk::gdk::Display::default() {
+			gtk::IconTheme::for_display(&display).add_resource_path(&resource("icons"));
+		}
+		gtk::Window::set_default_icon_name("io.github.glockerz.Salt");
 		log::info!(
 			"System information cpu={:?} mem={} distro={:?} display={:?} ntsync={}",
 			INFO.cpu,
@@ -296,7 +307,7 @@ pub fn run() -> glib::ExitCode {
 		if INFO.memory < 3 << 30 && !u.core.cfg().debug {
 			u.show_error(&l(
 				"This system does not meet the minimum requirements to run Roblox Studio. \
-				 It is recommended to run Vinegar with sufficient memory and graphics.",
+				 It is recommended to run Salt with sufficient memory and graphics.",
 			));
 		}
 

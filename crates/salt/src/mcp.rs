@@ -1,5 +1,5 @@
-//! `vinegar mcp`: a stdio MCP server that bridges to Roblox Studio's
-//! StudioMCP.exe running under Vinegar's Wine.
+//! `salt mcp`: a stdio MCP server that bridges to Roblox Studio's
+//! StudioMCP.exe running under Salt's Wine.
 //!
 //! Running StudioMCP.exe directly from an MCP client's wrapper had two
 //! problems under Flatpak:
@@ -30,7 +30,7 @@ use crate::config::Config;
 use crate::dirs::DIRS;
 
 const PORT: u16 = 13469;
-const INIT_ID: &str = "vinegar-bridge-init";
+const INIT_ID: &str = "salt-bridge-init";
 
 enum Event {
 	Client(String),
@@ -125,8 +125,8 @@ impl Bridge {
 				json!({
 					"protocolVersion": version,
 					"capabilities": {"tools": {"listChanged": true}},
-					"serverInfo": {"name": "Roblox Studio (Vinegar bridge)", "version": env!("CARGO_PKG_VERSION")},
-					"instructions": "Roblox Studio tools appear once Studio is running under Vinegar.",
+					"serverInfo": {"name": "Roblox Studio (Salt bridge)", "version": env!("CARGO_PKG_VERSION")},
+					"instructions": "Roblox Studio tools appear once Studio is running under Salt.",
 				})
 			}
 			"ping" => json!({}),
@@ -136,7 +136,7 @@ impl Bridge {
 			_ => {
 				self.send(&json!({"jsonrpc": "2.0", "id": id, "error": {
 					"code": -32000,
-					"message": "Roblox Studio is not running under Vinegar yet. Open Studio; its tools will appear automatically.",
+					"message": "Roblox Studio is not running under Salt yet. Open Studio; its tools will appear automatically.",
 				}}));
 				return;
 			}
@@ -353,7 +353,7 @@ pub fn run() -> std::process::ExitCode {
 		pending: Vec::new(),
 		next_check: Instant::now(),
 	};
-	log::info!("Vinegar MCP bridge started (prefix {})", b.pfx.dir().display());
+	log::info!("Salt MCP bridge started (prefix {})", b.pfx.dir().display());
 	b.try_start();
 
 	for ev in rx {

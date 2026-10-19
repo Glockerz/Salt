@@ -6,9 +6,9 @@ fn main() {
 	unsafe {
 		let entry = ash::Entry::load().expect("vulkan loader");
 		let layers = entry.enumerate_instance_layer_properties().unwrap();
-		let ours = layers.iter().any(|l| l.layer_name_as_c_str().unwrap() == c"VK_LAYER_VINEGAR_VinegarLayer");
+		let ours = layers.iter().any(|l| l.layer_name_as_c_str().unwrap() == c"VK_LAYER_SALT_SaltLayer");
 		println!("layer visible: {ours}");
-		let names = [c"VK_LAYER_VINEGAR_VinegarLayer".as_ptr()];
+		let names = [c"VK_LAYER_SALT_SaltLayer".as_ptr()];
 		let app = vk::ApplicationInfo::default().api_version(vk::API_VERSION_1_1);
 		let ci = vk::InstanceCreateInfo::default().application_info(&app).enabled_layer_names(&names);
 		let instance = entry.create_instance(&ci, None).expect("create instance");

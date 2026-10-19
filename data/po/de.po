@@ -155,8 +155,8 @@ msgid "Key name to add"
 msgstr "Zu hinzuzufügender Schlüsselname"
 
 #: data/ui/bootstrapper.ui:27
-msgid "Initializing Vinegar"
-msgstr "Vinegar wird initialisiert"
+msgid "Initializing Salt"
+msgstr "Salt wird initialisiert"
 
 #: data/ui/bootstrapper.ui:53
 msgid "Cancel"
@@ -180,24 +180,24 @@ msgstr "Fortgeschrittene Wine-Einstellungen"
 
 #: data/ui/manager.ui:143
 msgid ""
-"Under the hood, Vinegar configures and manages Wine, using <a href='https://"
+"Under the hood, Salt configures and manages Wine, using <a href='https://"
 "github.com/vinegarhq/kombucha'>a patched version</a> by default to enhance "
 "the Studio experience. However, Wine's instability may vary from system to "
 "system."
 msgstr ""
-"Standardmäßig konfiguriert und verwaltet Vinegar Wine intern mit <a href='https://"
+"Standardmäßig konfiguriert und verwaltet Salt Wine intern mit <a href='https://"
 "github.com/vinegarhq/kombucha'> einer gepatchten Version</a>, um die Erfahrung "
 "der Studiobenutzung zu verbessen. Jedoch kann die instabilität von Wine von "
 "System zu System variieren."
 
 #: data/ui/manager.ui:150
 msgid ""
-"Vinegar's settings can be configured to fix multiple window or rendering "
+"Salt's settings can be configured to fix multiple window or rendering "
 "issues, if any occur. See <a href='https://vinegarhq.org/Vinegar/"
 "Troubleshooting.html'>Common problems and their fixes</a> for further "
 "information."
 msgstr ""
-"Vinegar's Einstellungen können konfiguriert werden, um Probleme mit "
+"Salt's Einstellungen können konfiguriert werden, um Probleme mit "
 "mehreren Fenstern oder dem Rendering zu beheben, falls welche auftreten."
 "Siehe <a href='https://vinegarhq.org/Vinegar/"
 "Troubleshooting.html'>Einfache probleme und ihre Lösungen</a> für weitere "
@@ -209,12 +209,12 @@ msgstr "Problembehebung bei Wine"
 
 #: data/ui/manager.ui:157
 msgid ""
-"You may tweak Vinegar's settings or manage your Wine data from the manager "
-"page, which can be accessed by right clicking on Vinegar's icon on your "
+"You may tweak Salt's settings or manage your Wine data from the manager "
+"page, which can be accessed by right clicking on Salt's icon on your "
 "desktop or searching for \"Manage\" in your application launcher."
 msgstr ""
-"Vinegar's Einstellungen und die Wine-Daten können von der Manager-Seite "
-"aus verwaltet werden, welches sie durch einen Rechtsklick auf das Vinegar-icon "
+"Salt's Einstellungen und die Wine-Daten können von der Manager-Seite "
+"aus verwaltet werden, welches sie durch einen Rechtsklick auf das Salt-icon "
 "aufrufen können, oder indem sie in ihrem Anwendungs-starter \"Manage\" suchen."
 
 #: data/ui/manager.ui:158
@@ -226,8 +226,8 @@ msgid "Configure"
 msgstr "Konfigurieren"
 
 #: data/ui/manager.ui:179 data/ui/manager.ui:191
-msgid "Welcome to Vinegar"
-msgstr "Willkommen zu Vinegar"
+msgid "Welcome to Salt"
+msgstr "Willkommen zu Salt"
 
 #: data/ui/manager.ui:202
 msgid "Stop Processes"
@@ -250,8 +250,8 @@ msgid "Delete Prefix Data"
 msgstr "Prefix-Daten löschen"
 
 #: data/ui/manager.ui:231
-msgid "About Vinegar"
-msgstr "Über Vinegar"
+msgid "About Salt"
+msgstr "Über Salt"
 
 #: data/ui/manager.ui:235
 msgid "Clear Cache"

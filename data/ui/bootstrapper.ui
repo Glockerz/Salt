@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Created with Cambalache 0.96.3 -->
-<interface domain="vinegar">
+<interface domain="salt">
   <!-- interface-name bootstrapper.ui -->
   <requires lib="gtk" version="4.18"/>
   <requires lib="libadwaita" version="1.0"/>
@@ -16,7 +16,7 @@
         <property name="valign">center</property>
         <child>
           <object class="GtkImage" id="logo">
-            <property name="icon-name">org.vinegarhq.Vinegar</property>
+            <property name="icon-name">io.github.glockerz.Salt</property>
             <property name="margin-bottom">24</property>
             <property name="pixel-size">96</property>
           </object>
@@ -24,7 +24,7 @@
         <child>
           <object class="GtkLabel" id="status">
             <property name="css-classes">title-2</property>
-            <property name="label" translatable="yes">Initializing Vinegar</property>
+            <property name="label" translatable="yes">Initializing Salt</property>
             <property name="margin-bottom">24</property>
             <style>
               <class name="title"/>

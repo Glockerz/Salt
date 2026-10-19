@@ -2,7 +2,7 @@
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="application/x-roblox-place">
     <comment>Roblox Place</comment>
-    <icon name="org.vinegarhq.Vinegar.studio"/> 
+    <icon name="io.github.glockerz.Salt.studio"/> 
     <alias type="application/x-roblox-rbxl"/>
     <alias type="application/x-roblox-rbxlx"/>
     <glob-deleteall/>
@@ -11,7 +11,7 @@
   </mime-type>
   <mime-type type="application/x-roblox-model">
     <comment>Roblox Model</comment>
-    <icon name="org.vinegarhq.Vinegar.studio"/> 
+    <icon name="io.github.glockerz.Salt.studio"/> 
     <alias type="application/x-roblox-rbxm"/>
     <alias type="application/x-roblox-rbxmx"/>
     <glob-deleteall/>

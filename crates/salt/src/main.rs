@@ -1,4 +1,4 @@
-//! Vinegar: Roblox Studio on Linux through Wine.
+//! Salt: Roblox Studio on Linux through Wine.
 
 mod config;
 mod core;
@@ -19,7 +19,7 @@ use std::process::ExitCode;
 fn main() -> ExitCode {
 	// glibc sends A and AAAA queries in parallel from one socket; some
 	// routers drop one of them and every such lookup stalls for the full
-	// 5 s resolver timeout. Sequential queries avoid it, for Vinegar and
+	// 5 s resolver timeout. Sequential queries avoid it, for Salt and
 	// for Wine, which resolves Studio's hosts through the same resolver.
 	if std::env::var_os("RES_OPTIONS").is_none() {
 		// SAFETY: still single-threaded.
@@ -29,7 +29,7 @@ fn main() -> ExitCode {
 	match std::env::args().nth(1).as_deref() {
 		Some("mcp") => return mcp::run(),
 		Some("--version" | "version") => {
-			println!("vinegar {}", env!("CARGO_PKG_VERSION"));
+			println!("salt {}", env!("CARGO_PKG_VERSION"));
 			return ExitCode::SUCCESS;
 		}
 		_ => {}
@@ -57,7 +57,7 @@ fn main() -> ExitCode {
 	}
 }
 
-/// SIGINT/SIGTERM kill the Studio process Vinegar launched, which then
+/// SIGINT/SIGTERM kill the Studio process Salt launched, which then
 /// lets the bootstrapper finish and the app quit normally. The signals
 /// are blocked before any thread exists and taken by one `sigwait`
 /// thread, so no other thread is interrupted by them.

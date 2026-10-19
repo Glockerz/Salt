@@ -20,7 +20,7 @@ use std::sync::{LazyLock, RwLock};
 
 use ash::vk;
 
-const LAYER_NAME: &CStr = c"VK_LAYER_VINEGAR_VinegarLayer";
+const LAYER_NAME: &CStr = c"VK_LAYER_SALT_SaltLayer";
 
 // Loader-layer interface types (vk_layer.h), not part of ash.
 const VK_LAYER_LINK_INFO: i32 = 0;
@@ -255,7 +255,7 @@ unsafe extern "system" fn EnumerateInstanceLayerProperties(count: *mut u32, prop
 		if !props.is_null() {
 			let p = &mut *props;
 			copy_name(&mut p.layer_name, LAYER_NAME);
-			copy_name(&mut p.description, c"Vinegar layer");
+			copy_name(&mut p.description, c"Salt layer");
 			p.implementation_version = 1;
 			p.spec_version = vk::API_VERSION_1_0;
 		}
@@ -328,13 +328,13 @@ macro_rules! intercept {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn VinegarLayer_GetDeviceProcAddr(device: vk::Device, name: *const c_char) -> vk::PFN_vkVoidFunction {
+pub unsafe extern "system" fn SaltLayer_GetDeviceProcAddr(device: vk::Device, name: *const c_char) -> vk::PFN_vkVoidFunction {
 	unsafe {
 		let n = CStr::from_ptr(name).to_bytes();
 		intercept!(n, EnumerateDeviceLayerProperties, EnumerateDeviceExtensionProperties, CreateDevice, DestroyDevice, AcquireNextImageKHR);
 		if n == b"vkGetDeviceProcAddr" {
 			return Some(std::mem::transmute::<*const (), unsafe extern "system" fn()>(
-				VinegarLayer_GetDeviceProcAddr as *const (),
+				SaltLayer_GetDeviceProcAddr as *const (),
 			));
 		}
 		let gdpa = DEVICES.read().unwrap().get(&key(vk::Handle::as_raw(device) as *const c_void)).map(|t| t.gdpa);
@@ -343,7 +343,7 @@ pub unsafe extern "system" fn VinegarLayer_GetDeviceProcAddr(device: vk::Device,
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "system" fn VinegarLayer_GetInstanceProcAddr(
+pub unsafe extern "system" fn SaltLayer_GetInstanceProcAddr(
 	instance: vk::Instance,
 	name: *const c_char,
 ) -> vk::PFN_vkVoidFunction {
@@ -364,12 +364,12 @@ pub unsafe extern "system" fn VinegarLayer_GetInstanceProcAddr(
 		);
 		if n == b"vkGetInstanceProcAddr" {
 			return Some(std::mem::transmute::<*const (), unsafe extern "system" fn()>(
-				VinegarLayer_GetInstanceProcAddr as *const (),
+				SaltLayer_GetInstanceProcAddr as *const (),
 			));
 		}
 		if n == b"vkGetDeviceProcAddr" {
 			return Some(std::mem::transmute::<*const (), unsafe extern "system" fn()>(
-				VinegarLayer_GetDeviceProcAddr as *const (),
+				SaltLayer_GetDeviceProcAddr as *const (),
 			));
 		}
 		if instance == vk::Instance::null() {

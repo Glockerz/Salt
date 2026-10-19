@@ -1,6 +1,6 @@
 //! Manage a Wineprefix and run Wine.
 //!
-//! A port of `github.com/sewnie/wine`, trimmed to what Vinegar uses and
+//! A port of `github.com/sewnie/wine`, trimmed to what Salt uses and
 //! extended with an offline registry API that avoids spawning Wine for
 //! read-only queries.
 

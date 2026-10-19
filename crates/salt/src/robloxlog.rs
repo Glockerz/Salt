@@ -204,7 +204,7 @@ mod tests {
 
 	#[test]
 	fn tail_files() {
-		let dir = std::env::temp_dir().join(format!("vinegar-logtest-{}", std::process::id()));
+		let dir = std::env::temp_dir().join(format!("salt-logtest-{}", std::process::id()));
 		let _ = fs::remove_dir_all(&dir);
 		fs::create_dir_all(&dir).unwrap();
 		fs::write(dir.join("old_Studio_1_last.log"), "a,b,c,6 launching new studio instance\n").unwrap();

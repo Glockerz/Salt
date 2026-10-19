@@ -1,8 +1,8 @@
 fn main() {
 	glib_build_tools::compile_resources(
 		&["../../data"],
-		"../../data/vinegar.gresource.xml",
-		"vinegar.gresource",
+		"../../data/salt.gresource.xml",
+		"salt.gresource",
 	);
 	println!("cargo:rerun-if-changed=../../data");
 }

@@ -132,11 +132,11 @@ fn delete_and_add() {
 	assert_eq!(k.query("A").unwrap().subkeys.len(), 0);
 }
 
-/// Parses a real prefix: `VINEGAR_TEST_PREFIX=/path/to/prefix cargo test -- --ignored`
+/// Parses a real prefix: `SALT_TEST_PREFIX=/path/to/prefix cargo test -- --ignored`
 #[test]
 #[ignore]
 fn parse_real_prefix() {
-	let dir = std::env::var("VINEGAR_TEST_PREFIX").expect("VINEGAR_TEST_PREFIX");
+	let dir = std::env::var("SALT_TEST_PREFIX").expect("SALT_TEST_PREFIX");
 	let t = std::time::Instant::now();
 	let reg = Registry::load(std::path::Path::new(&dir)).unwrap();
 	eprintln!("parsed in {:?}", t.elapsed());
