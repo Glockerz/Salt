@@ -62,6 +62,9 @@ impl Manager {
 			});
 			glib::Propagation::Proceed
 		});
+		for hb in ["headerbar", "welcome_headerbar"] {
+			crate::icon::header_bar(&obj(&b, hb));
+		}
 		m.actions(u, &b);
 		m.bind(u, &b);
 		m.wine_updater(u, &b);

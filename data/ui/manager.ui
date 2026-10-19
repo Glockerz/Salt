@@ -377,7 +377,7 @@
                   </object>
                 </property>
                 <child type="top">
-                  <object class="AdwHeaderBar">
+                  <object class="AdwHeaderBar" id="welcome_headerbar">
                     <property name="show-back-button">False</property>
                     <property name="show-title">False</property>
                   </object>

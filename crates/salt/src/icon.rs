@@ -8,9 +8,11 @@
 //! icon directory (which takes priority over the installed black one)
 //! while it is selected, and removes it otherwise.
 
+use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 
 use adw::prelude::*;
+use gtk::glib;
 
 pub const SETTINGS: &[&str] = &["auto", "black", "white"];
 
@@ -73,10 +75,26 @@ fn user_icons() -> PathBuf {
 	crate::dirs::home().join(".local/share/icons/hicolor")
 }
 
-/// Sets the taskbar and menu icon to `v`, and the in-window logo to `logo`.
+thread_local! {
+	static LOGO: Cell<Variant> = const { Cell::new(Variant::Black) };
+	static TITLE_ICONS: RefCell<Vec<glib::WeakRef<gtk::Image>>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Sets the taskbar and menu icon to `v`, and the logos drawn inside
+/// Salt's windows to `logo`.
 pub fn apply(v: Variant, logo: Variant) {
 	gtk::Window::set_default_icon_name(v.icon_name());
+	LOGO.set(logo);
 	crate::ui::local(|u| u.boot.logo.set_icon_name(Some(logo.icon_name())));
+	TITLE_ICONS.with_borrow_mut(|icons| {
+		icons.retain(|w| match w.upgrade() {
+			Some(img) => {
+				img.set_icon_name(Some(logo.icon_name()));
+				true
+			}
+			None => false,
+		});
+	});
 	if let Err(e) = desktop(v) {
 		log::debug!("Desktop icon not updated: {e}");
 	}
@@ -112,6 +130,36 @@ fn desktop(v: Variant) -> std::io::Result<()> {
 		log::info!("Desktop icon set to {v:?}");
 	}
 	Ok(())
+}
+
+/// Title bars draw the window icon when the desktop's button layout
+/// includes "icon" (XFCE's default). That icon is also the taskbar icon,
+/// which follows the icon setting and may not contrast with Salt's own
+/// title bar, so the header bar shows Salt's logo itself instead.
+pub fn header_bar(hb: &adw::HeaderBar) {
+	let layout = gtk::Settings::default()
+		.and_then(|s| s.gtk_decoration_layout())
+		.map(|s| s.to_string())
+		.unwrap_or_default();
+	let (start, end) = layout.split_once(':').unwrap_or((&layout, ""));
+	let has_icon = |side: &str| side.split(',').any(|b| b == "icon");
+	let (at_start, at_end) = (has_icon(start), has_icon(end));
+	if !at_start && !at_end {
+		return;
+	}
+	let strip = |side: &str| side.split(',').filter(|b| !b.is_empty() && *b != "icon").collect::<Vec<_>>().join(",");
+	hb.set_decoration_layout(Some(&format!("{}:{}", strip(start), strip(end))));
+
+	let img = gtk::Image::from_icon_name(LOGO.get().icon_name());
+	img.set_pixel_size(16);
+	img.set_margin_start(4);
+	img.set_margin_end(4);
+	if at_start {
+		hb.pack_start(&img);
+	} else {
+		hb.pack_end(&img);
+	}
+	TITLE_ICONS.with_borrow_mut(|icons| icons.push(img.downgrade()));
 }
 
 /// Applies the configured variant now and whenever the theme changes.
