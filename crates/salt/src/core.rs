@@ -24,6 +24,10 @@ const STUDIO_REG_PATH: &str = r"HKCU\Software\Roblox\RobloxStudio";
 const CRED_REG_PATH: &str = r"HKCU\Software\Wine\Credential Manager";
 const CHANNEL_KEY: &str = r"HKCU\Software\ROBLOX Corporation\Environments\RobloxStudio\Channel";
 const AUTH_NAME_PREFIX: &str = "Generic: https://www.roblox.com:RobloxStudioAuth";
+/// The Wine virtual desktop's name, which titles its window. Wine's
+/// explorer ends the name at the first space, with no quoting.
+const DESKTOP_NAME: &str = "RobloxStudio";
+const DESKTOPS_KEY: &str = r"Software\Wine\Explorer\Desktops";
 
 pub fn err(msg: impl Into<String>) -> Error {
 	msg.into().into()
@@ -479,6 +483,9 @@ impl Core {
 		self.install_webview(&webview, &cfg)
 			.map_err(|e| err(format!("install webview: {e}")))?;
 		self.share_webview(&cfg);
+		if !cfg.studio.desktop.is_empty() {
+			self.hide_desktop_taskbar(offline.as_ref());
+		}
 		// DXVK runs no program, which would leave the wineserver to its
 		// persistence timeout; install it right before Studio runs.
 		self.setup_dxvk(&cfg, &dir).map_err(|e| err(format!("dxvk: {e}")))?;
@@ -657,6 +664,27 @@ impl Core {
 		Ok(())
 	}
 
+	/// Turns off the Windows-style taskbar Wine draws in Salt's virtual
+	/// desktops; Studio has its own window and the desktop panel's.
+	fn hide_desktop_taskbar(&self, offline: Option<&Registry>) {
+		let set = offline
+			.and_then(|r| r.query(&format!(r"HKCU\{DESKTOPS_KEY}\{DESKTOP_NAME}")))
+			.and_then(|k| k.value("EnableShell").map(|v| v.data.clone()))
+			== Some(wine::Data::Dword(0));
+		if set {
+			return;
+		}
+		let mut root = wine::Key::with_path(r"HKCU\");
+		let desktops = root.add(DESKTOPS_KEY);
+		for n in 1..=4 {
+			let name = if n == 1 { DESKTOP_NAME.to_owned() } else { format!("{DESKTOP_NAME}{n}") };
+			desktops.add(&name).set("EnableShell", 0u32);
+		}
+		if let Err(e) = self.pfx().registry_import_key(&root) {
+			log::warn!("Failed to hide the virtual desktop's taskbar: {e}");
+		}
+	}
+
 	/// Lets WebView2's processes share its libraries; done on every
 	/// launch, for runtimes installed by older Salt, but quick once done.
 	/// A failure only costs memory.
@@ -741,7 +769,14 @@ impl Core {
 		}
 		let cfg = self.cfg();
 		if !cfg.studio.desktop.is_empty() {
-			cmd.insert_args(0, &["explorer".to_owned(), format!("/desktop={},{}", uuid(), cfg.studio.desktop)]);
+			let size = crate::config::desktop_size(&cfg.studio.desktop);
+			if size != cfg.studio.desktop {
+				log::warn!("Wine has no {} desktop, using size={size}", cfg.studio.desktop);
+			}
+			// Each Studio gets its own desktop, named for the window title.
+			let n = self.count.load(Ordering::SeqCst);
+			let name = if n == 0 { DESKTOP_NAME.to_owned() } else { format!("{DESKTOP_NAME}{}", n + 1) };
+			cmd.insert_args(0, &["explorer".to_owned(), format!("/desktop={name},{size}")]);
 		}
 		let launcher: Vec<&str> = cfg.studio.launcher.split_whitespace().collect();
 		if !launcher.is_empty() {
@@ -1007,18 +1042,6 @@ fn user_dir(kind: &str, fallback: &str) -> PathBuf {
 		})
 		.filter(|p| p.is_absolute())
 		.unwrap_or_else(|| home.join(fallback))
-}
-
-fn uuid() -> String {
-	let mut b = [0u8; 16];
-	if let Ok(mut f) = std::fs::File::open("/dev/urandom") {
-		use std::io::Read;
-		let _ = f.read_exact(&mut b);
-	}
-	b[6] = (b[6] & 0x0f) | 0x40;
-	b[8] = (b[8] & 0x3f) | 0x80;
-	let h: String = b.iter().map(|x| format!("{x:02x}")).collect();
-	format!("{}-{}-{}-{}-{}", &h[..8], &h[8..12], &h[12..16], &h[16..20], &h[20..])
 }
 
 /// RC4, as used by Wine's credential manager.

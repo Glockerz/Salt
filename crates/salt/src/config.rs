@@ -12,7 +12,34 @@ use crate::sysinfo::INFO;
 pub const DXVK_VERSION: &str = "3.1";
 pub const DXVK_SAREK_VERSION: &str = "Sarek-1.11.0-async";
 pub const WEBVIEW_VERSION: &str = "144.0.3719.92";
-pub const DESKTOP_RESOLUTION: &str = "1814x1024";
+/// Used when enabling virtual desktops and the screen size is unknown.
+pub const DESKTOP_RESOLUTION: &str = "1600x900";
+
+/// The sizes Wine accepts for a virtual desktop. For any other size it
+/// fails to set the desktop's mode and covers the whole screen instead,
+/// panels included.
+pub const DESKTOP_SIZES: &[(u32, u32)] = &[
+	(640, 480),
+	(800, 600),
+	(1024, 768),
+	(1152, 864),
+	(1280, 720),
+	(1280, 800),
+	(1280, 960),
+	(1280, 1024),
+	(1366, 768),
+	(1400, 1050),
+	(1440, 900),
+	(1600, 900),
+	(1600, 1200),
+	(1680, 1050),
+	(1920, 1080),
+	(1920, 1200),
+	(2048, 1536),
+	(2560, 1440),
+	(2560, 1600),
+	(3840, 2160),
+];
 
 /// Order must match the renderer model in the manager UI.
 pub const RENDERERS: &[&str] = &["D3D11", "D3D11FL10", "DXVK", "DXVK-Sarek", "Vulkan"];
@@ -196,8 +223,44 @@ impl Config {
 
 /// Whether `s` is a Wine desktop size, "WIDTHxHEIGHT".
 pub fn valid_resolution(s: &str) -> bool {
-	let ok = |n: &str| !n.is_empty() && n.len() <= 5 && n.bytes().all(|b| b.is_ascii_digit()) && n != "0";
-	s.split_once('x').is_some_and(|(w, h)| ok(w) && ok(h))
+	parse_resolution(s).is_some()
+}
+
+fn parse_resolution(s: &str) -> Option<(u32, u32)> {
+	let num = |n: &str| -> Option<u32> {
+		if n.is_empty() || n.len() > 5 || !n.bytes().all(|b| b.is_ascii_digit()) {
+			return None;
+		}
+		n.parse().ok().filter(|&n| n > 0)
+	};
+	let (w, h) = s.split_once('x')?;
+	Some((num(w)?, num(h)?))
+}
+
+/// Whether `s` is one of the sizes Wine accepts for a virtual desktop.
+pub fn standard_resolution(s: &str) -> bool {
+	parse_resolution(s).is_some_and(|r| DESKTOP_SIZES.contains(&r))
+}
+
+/// The largest size Wine accepts that fits in `w`x`h`.
+pub fn fitting_resolution(w: u32, h: u32) -> String {
+	let (w, h) = DESKTOP_SIZES
+		.iter()
+		.filter(|&&(sw, sh)| sw <= w && sh <= h)
+		.max_by_key(|&&(sw, sh)| sw * sh)
+		.copied()
+		.unwrap_or(DESKTOP_SIZES[0]);
+	format!("{w}x{h}")
+}
+
+/// The virtual desktop size to use for the configured one: itself when
+/// Wine accepts it, else the largest accepted size within it.
+pub fn desktop_size(s: &str) -> String {
+	match parse_resolution(s) {
+		_ if standard_resolution(s) => s.to_owned(),
+		Some((w, h)) => fitting_resolution(w, h),
+		None => DESKTOP_RESOLUTION.to_owned(),
+	}
 }
 
 /// Moves an unreadable configuration file aside, so that saving
@@ -402,6 +465,17 @@ mod tests {
 		}
 		assert!(Config::parse("[studio]\nvirtual_desktop = \"1920x\"\n").is_err());
 		assert!(Config::parse("[studio]\nvirtual_desktop = \"1280x720\"\n").is_ok());
+		// The old default: still a readable config, used as 1600x900.
+		assert!(Config::parse("[studio]\nvirtual_desktop = \"1814x1024\"\n").is_ok());
+		assert!(!standard_resolution("1814x1024"));
+		assert!(standard_resolution("1920x1080"));
+		assert_eq!(desktop_size("1814x1024"), "1600x900");
+		assert_eq!(desktop_size("1700x900"), "1600x900");
+		assert_eq!(desktop_size("1920x1080"), "1920x1080");
+		assert_eq!(desktop_size("100x100"), "640x480");
+		assert_eq!(fitting_resolution(3440, 1440 - 120), "1920x1200");
+		assert_eq!(fitting_resolution(1920, 1080 - 120), "1600x900");
+		assert_eq!(fitting_resolution(1366, 768 - 120), "800x600");
 	}
 
 	#[test]

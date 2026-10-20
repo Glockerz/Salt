@@ -343,8 +343,8 @@ impl Manager {
 				if text.is_empty() {
 					desktop.set_expanded(false);
 					desktop.set_enable_expansion(false);
-				} else if !config::valid_resolution(&text) {
-					// Mid-typing ("1920x"): wait for a whole one.
+				} else if !config::standard_resolution(&text) {
+					// Mid-typing ("1920x"), or a size Wine has no mode for.
 					r.add_css_class("error");
 					return;
 				}
@@ -359,7 +359,7 @@ impl Manager {
 				if !d.enables_expansion() && !d.is_expanded() {
 					resolution.set_text("");
 				} else if resolution.text().is_empty() {
-					resolution.set_text(config::DESKTOP_RESOLUTION);
+					resolution.set_text(&default_desktop_size(d));
 				}
 			});
 		}
@@ -479,6 +479,24 @@ impl Manager {
 			save(&core);
 			popover.popdown();
 		});
+	}
+}
+
+/// The largest virtual desktop size Wine supports that fits on the
+/// screen the window is on, leaving room for panels.
+fn default_desktop_size(w: &impl IsA<gtk::Widget>) -> String {
+	let display = w.display();
+	let monitor = w
+		.native()
+		.and_then(|n| n.surface())
+		.and_then(|s| display.monitor_at_surface(&s))
+		.or_else(|| display.monitors().item(0).and_downcast::<gtk::gdk::Monitor>());
+	match monitor {
+		Some(m) => {
+			let g = m.geometry();
+			config::fitting_resolution(g.width() as u32, (g.height() as u32).saturating_sub(120))
+		}
+		None => config::DESKTOP_RESOLUTION.to_owned(),
 	}
 }
 
