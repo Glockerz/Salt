@@ -21,6 +21,9 @@ finish-args:
   # Discord Rich Presence (Discord flatpak and Vesktop).
   - --filesystem=xdg-run/app/com.discordapp.Discord:create
   - --filesystem=xdg-run/.flatpak/dev.vencord.Vesktop:create
+  # The desktop's GTK 4 colors and overrides (written by KDE, theme tools
+  # like Gradience or adw-gtk3, or by hand), so Salt follows the system theme.
+  - --filesystem=xdg-config/gtk-4.0:ro
   # The white app icon for dark desktops, placed in the user's icon theme.
   - --filesystem=xdg-data/icons/hicolor:create
   # Automatic updates: the host's flatpak reinstalls Salt's newer bundle.

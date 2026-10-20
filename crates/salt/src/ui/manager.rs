@@ -90,9 +90,9 @@ impl Manager {
 				}
 				let core = core.clone();
 				Ui::spawn(move || {
-					core.prepare_wine()?;
-					core.pfx().wine(&args[0], &args[1..]).run()?;
-					Ok(())
+					let r = core.prepare_wine().and_then(|_| Ok(core.pfx().wine(&args[0], &args[1..]).run()?));
+					core.release_hold();
+					r
 				});
 			});
 		}
@@ -289,14 +289,10 @@ impl Manager {
 		}
 		{
 			let row = self.wine_row.clone();
-			let core = core.clone();
+			// Back to the default: Salt's own Wine, or none where there
+			// is no build for this system.
 			obj::<gtk::Button>(b, "wine_revert").connect_clicked(move |_| {
-				let cur = core.cfg().studio.wineroot;
-				row.set_subtitle(&if cur.is_empty() {
-					DIRS.wine_path.display().to_string()
-				} else {
-					String::new()
-				});
+				row.set_subtitle(&config::Studio::default().wineroot);
 			});
 		}
 		{
@@ -342,11 +338,16 @@ impl Manager {
 			let core = core.clone();
 			let desktop = desktop.clone();
 			resolution.connect_text_notify(move |r| {
-				let text = r.text().to_string();
+				let text = r.text().trim().to_string();
 				if text.is_empty() {
 					desktop.set_expanded(false);
 					desktop.set_enable_expansion(false);
+				} else if !config::valid_resolution(&text) {
+					// Mid-typing ("1920x"): wait for a whole one.
+					r.add_css_class("error");
+					return;
 				}
+				r.remove_css_class("error");
 				core.cfg.write().unwrap().studio.desktop = text;
 				save(&core);
 			});

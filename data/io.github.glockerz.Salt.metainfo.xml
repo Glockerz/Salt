@@ -21,6 +21,14 @@
 	</supports>
 	<content_rating type="oars-1.1"/>
 	<releases>
+		<release version="2.0.8" date="2026-10-19">
+			<description>
+				<p>Studio's login window and other web pages use about half the memory: WebView2's processes now share its 300 MB library instead of each loading a copy.</p>
+				<p>Stopping Salt with Virtual Desktops on now also stops Studio, which was left running.</p>
+				<p>Settings are safer: the Virtual Desktop size is only saved once it is a whole resolution, reverting the Wine setting no longer deletes the downloaded Wine, a mistyped forced version no longer removes the installed Studio, and an unreadable config.toml is kept instead of being overwritten.</p>
+				<p>Salt follows the desktop's GTK 4 theme colors.</p>
+			</description>
+		</release>
 		<release version="2.0.7" date="2026-10-19">
 			<description>
 				<p>Salt now updates itself: when Studio starts, it installs any newer release in the background and uses it from the next launch. Turn it off with the Automatic Updates setting.</p>

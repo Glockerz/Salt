@@ -14,7 +14,7 @@ use std::sync::Arc;
 use adw::prelude::*;
 use gtk::{gio, glib};
 
-use crate::config::Config;
+use crate::config::{self, Config};
 use crate::core::{Core, Frontend, Result, err};
 use crate::dirs::DIRS;
 use crate::i18n::l;
@@ -322,7 +322,12 @@ pub fn run() -> glib::ExitCode {
 
 		let (cfg, cfg_err) = match Config::load() {
 			Ok(c) => (c, None),
-			Err(e) => (Config::default(), Some(format!("config error: {e}"))),
+			Err(e) => {
+				let kept = config::set_aside()
+					.map(|p| format!("\n\n{}", l("Your settings were kept in {}; Salt uses the defaults until you fix them.").replace("{}", &p.display().to_string())))
+					.unwrap_or_default();
+				(Config::default(), Some(format!("config error: {e}{kept}")))
+			}
 		};
 		apply_theme(&cfg.theme);
 		let core = Core::new(cfg, Arc::new(GtkFrontend));

@@ -122,6 +122,8 @@ pub enum Error {
 	Icon,
 	#[error("theme must be one of {THEMES:?}")]
 	Theme,
+	#[error("virtual_desktop must be a resolution like 1920x1080")]
+	Desktop,
 	#[error("{0}")]
 	Toml(#[from] toml::de::Error),
 	#[error("{0}")]
@@ -165,6 +167,9 @@ impl Config {
 		if !THEMES.contains(&self.theme.as_str()) {
 			return Err(Error::Theme);
 		}
+		if !self.studio.desktop.is_empty() && !valid_resolution(&self.studio.desktop) {
+			return Err(Error::Desktop);
+		}
 		Ok(())
 	}
 
@@ -187,6 +192,21 @@ impl Config {
 		std::fs::rename(tmp, &DIRS.config_path)?;
 		Ok(())
 	}
+}
+
+/// Whether `s` is a Wine desktop size, "WIDTHxHEIGHT".
+pub fn valid_resolution(s: &str) -> bool {
+	let ok = |n: &str| !n.is_empty() && n.len() <= 5 && n.bytes().all(|b| b.is_ascii_digit()) && n != "0";
+	s.split_once('x').is_some_and(|(w, h)| ok(w) && ok(h))
+}
+
+/// Moves an unreadable configuration file aside, so that saving
+/// settings doesn't overwrite it with the defaults. Returns where it
+/// went.
+pub fn set_aside() -> Option<PathBuf> {
+	let bad = DIRS.config_path.with_extension("toml.invalid");
+	std::fs::rename(&DIRS.config_path, &bad).ok()?;
+	Some(bad)
 }
 
 fn diff(def: &toml::Table, cur: &toml::Table) -> toml::Table {
@@ -290,10 +310,9 @@ impl Config {
 			"D3D11" | "D3D11FL10" => ("gl", "gl"),
 			_ => ("vulkan", "vulkan"),
 		};
-		env.insert(
-			"WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS".into(),
-			format!("--in-process-gpu --use-angle={angle}"),
-		);
+		// The user's own arguments go last, so they can override these.
+		let args = env.entry("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS".into()).or_default();
+		*args = format!("--in-process-gpu --use-angle={angle} {args}").trim_end().to_owned();
 		env.insert("WINE_D3D_CONFIG".into(), format!("renderer={d3d}"));
 		if self.studio.renderer == "Vulkan" {
 			env.insert("VK_LOADER_LAYERS_ENABLE".into(), "VK_LAYER_SALT_SaltLayer".into());
@@ -353,6 +372,17 @@ mod tests {
 		assert!(cfg.env.is_empty());
 		assert_eq!(cfg.studio.renderer, "DXVK");
 		assert!(Config::parse("[studio]\nrenderer = \"Metal\"\n").is_err());
+	}
+
+	#[test]
+	fn resolutions() {
+		assert!(valid_resolution("1920x1080"));
+		assert!(valid_resolution("800x600"));
+		for bad in ["", "1920", "1920x", "x1080", "1920X1080", "19 20x1080", "0x600", "-1x600", "1920x1080x1"] {
+			assert!(!valid_resolution(bad), "{bad}");
+		}
+		assert!(Config::parse("[studio]\nvirtual_desktop = \"1920x\"\n").is_err());
+		assert!(Config::parse("[studio]\nvirtual_desktop = \"1280x720\"\n").is_ok());
 	}
 
 	#[test]

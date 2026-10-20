@@ -59,6 +59,10 @@ Salt follows your system's light or dark preference; choose **Light** or
 `theme = "dark"` in the config file). Dark mode also darkens Studio's
 Windows-style dialogs and menus.
 
+Salt's windows follow your desktop's light/dark preference and its GTK 4 theme
+colors (`~/.config/gtk-4.0/gtk.css`, which KDE and theming tools such as
+Gradience write).
+
 Salt's icon is black on light themes and white on dark ones. If your desktop
 doesn't report dark mode (common with custom themes), pick the icon in
 **Settings → App Icon**, or set `icon = "white"` (or `"black"`) in

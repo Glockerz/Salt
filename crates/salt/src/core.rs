@@ -140,17 +140,10 @@ impl Core {
 				core.wine_output(line);
 			}
 		}));
+		// The downloaded Wine is kept when another one is chosen: this runs
+		// on every edit of the setting, and switching back must not need
+		// a new download.
 		*self.pfx.write().unwrap() = new;
-
-		if Path::new(&cfg.studio.wineroot) == DIRS.wine_path {
-			return;
-		}
-		// The user switched to another Wine; drop the unused download.
-		if let Ok(path) = std::fs::canonicalize(&DIRS.wine_path) {
-			log::info!("Removing unused Wine build path={}", path.display());
-			let _ = std::fs::remove_dir_all(&path);
-			let _ = std::fs::remove_file(&DIRS.wine_path);
-		}
 	}
 
 	fn wine_output(&self, line: &[u8]) {
@@ -227,6 +220,11 @@ impl Core {
 			Ok(h) => *self.hold.lock().unwrap() = Some(h),
 			Err(e) => log::warn!("Failed to keep the wineserver running: {e}"),
 		}
+	}
+
+	/// Stops keeping the wineserver running, after a manager command.
+	pub fn release_hold(&self) {
+		self.hold.lock().unwrap().take();
 	}
 
 	/// Installs a Kombucha Wine release ("Latest" or a tag).
@@ -480,6 +478,7 @@ impl Core {
 		self.write_channel()?;
 		self.install_webview(&webview, &cfg)
 			.map_err(|e| err(format!("install webview: {e}")))?;
+		self.share_webview(&cfg);
 		// DXVK runs no program, which would leave the wineserver to its
 		// persistence timeout; install it right before Studio runs.
 		self.setup_dxvk(&cfg, &dir).map_err(|e| err(format!("dxvk: {e}")))?;
@@ -519,7 +518,6 @@ impl Core {
 			Err(e) => log::info!("Installing Studio new={} reason={e}", bin.guid),
 		}
 		self.message(&l("Installing Studio"));
-		remove_unique_files(&DIRS.versions, &[bin.guid.as_str()]);
 
 		self.message(&l("Finding Mirror"));
 		let mirror = rbxbin::Mirror::get().map_err(|e| err(format!("fetch mirror: {e}")))?;
@@ -568,6 +566,9 @@ impl Core {
 		self.message(&l("Writing AppSettings"));
 		rbxbin::write_app_settings(&dir).map_err(|e| err(format!("appsettings: {e}")))?;
 		log::info!("Successfully installed! guid={}", bin.guid);
+		// Only now: a failed install, say of a mistyped forced version,
+		// keeps the working one.
+		remove_unique_files(&DIRS.versions, &[bin.guid.as_str()]);
 		Ok(())
 	}
 
@@ -654,6 +655,21 @@ impl Core {
 		let _pulse = Pulse::new(&*self.fe);
 		wine::webview2::install(&pfx, &inst)?;
 		Ok(())
+	}
+
+	/// Lets WebView2's processes share its libraries; done on every
+	/// launch, for runtimes installed by older Salt, but quick once done.
+	/// A failure only costs memory.
+	fn share_webview(&self, cfg: &Config) {
+		let want = &cfg.studio.webview;
+		if want.is_empty() {
+			return;
+		}
+		match wine::webview2::share_images(&self.pfx(), want) {
+			Ok(changed) if !changed.is_empty() => log::info!("Realigned WebView images {changed:?}"),
+			Ok(_) => {}
+			Err(e) => log::warn!("Failed to realign WebView images: {e}"),
+		}
 	}
 
 	fn dxvk_tarball(version: &str) -> PathBuf {
@@ -748,8 +764,13 @@ impl Core {
 			self.start_log_watcher();
 		}
 
+		// A login callback hands off to the running Studio and exits; it
+		// must not replace that Studio as the one Salt stops on a signal.
+		let auth = args.first().is_some_and(|a| a.starts_with("roblox-studio-auth:"));
 		let mut child = cmd.spawn()?;
-		self.child.store(child.id(), Ordering::SeqCst);
+		if !auth {
+			self.child.store(child.id(), Ordering::SeqCst);
+		}
 		self.count.fetch_add(1, Ordering::SeqCst);
 		// Studio connects to the wineserver within moments of starting.
 		if let Some(hold) = self.hold.lock().unwrap().take() {
@@ -767,7 +788,9 @@ impl Core {
 		}
 
 		let status = child.inner.wait();
-		self.child.store(0, Ordering::SeqCst);
+		if !auth {
+			self.child.store(0, Ordering::SeqCst);
+		}
 		if self.count.fetch_sub(1, Ordering::SeqCst) == 1 {
 			self.stop_log_watcher();
 		}
@@ -806,6 +829,10 @@ impl Core {
 	}
 
 	/// Kills the Studio process this Salt launched.
+	///
+	/// With a virtual desktop, that process is Wine's explorer, and Studio
+	/// would outlive it; so every Studio in Salt's prefix goes too. The
+	/// wineserver stays, for the settings backup at exit.
 	pub fn kill_child(&self) {
 		let pid = self.child.load(Ordering::SeqCst);
 		if pid != 0 {
@@ -813,6 +840,29 @@ impl Core {
 			// SAFETY: plain kill(2).
 			unsafe { libc::kill(pid as i32, libc::SIGKILL) };
 		}
+		for pid in self.studio_processes() {
+			log::debug!("Killing Roblox pid={pid}");
+			// SAFETY: as above.
+			unsafe { libc::kill(pid, libc::SIGKILL) };
+		}
+	}
+
+	/// Studio's processes (and WebView2's, which name it) running in
+	/// Salt's prefix.
+	fn studio_processes(&self) -> Vec<i32> {
+		let want = format!("WINEPREFIX={}", self.pfx().dir().display());
+		let Ok(rd) = std::fs::read_dir("/proc") else {
+			return Vec::new();
+		};
+		rd.flatten()
+			.filter_map(|e| e.file_name().to_str()?.parse::<i32>().ok())
+			.filter(|&pid| {
+				let read = |file: &str| std::fs::read(format!("/proc/{pid}/{file}")).unwrap_or_default();
+				let studio = b"RobloxStudioBeta.exe";
+				read("cmdline").windows(studio.len()).any(|w| w == studio)
+					&& read("environ").split(|&b| b == 0).any(|v| v == want.as_bytes())
+			})
+			.collect()
 	}
 
 	/// Ends the Wine processes left in Salt's sandbox once no Studio runs
@@ -882,6 +932,9 @@ impl Core {
 	}
 
 	pub fn delete_deployments(&self) -> Result {
+		if self.count.load(Ordering::SeqCst) > 0 {
+			return Err(err(l("Close Roblox Studio before uninstalling it.")));
+		}
 		remove_all(&DIRS.versions)
 	}
 

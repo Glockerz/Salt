@@ -188,6 +188,31 @@ pub fn uninstall(pfx: &Prefix, version: &str) -> Result<()> {
 	r
 }
 
+/// The images every WebView2 process loads.
+const SHARED_IMAGES: &[&str] = &["msedge.dll", "msedge_elf.dll", "msedgewebview2.exe"];
+
+/// Page-aligns the images every WebView2 process loads, so that Wine
+/// shares them between processes (see [`crate::pe::realign`]): without
+/// it, each process holds a private copy of the 300 MB msedge.dll.
+/// Returns the images that changed.
+pub fn share_images(pfx: &Prefix, version: &str) -> Result<Vec<&'static str>> {
+	let dir = pfx
+		.dir()
+		.join("drive_c/Program Files (x86)/Microsoft/EdgeWebView/Application")
+		.join(version);
+	let mut changed = Vec::new();
+	for name in SHARED_IMAGES {
+		let path = dir.join(name);
+		if !path.exists() {
+			continue;
+		}
+		if crate::pe::realign_file(&path).map_err(|e| Error::Other(format!("{name}: {e}")))? {
+			changed.push(*name);
+		}
+	}
+	Ok(changed)
+}
+
 /// Reports whether a runtime version is installed.
 pub fn installed(pfx: &Prefix, version: &str) -> bool {
 	pfx.dir()
