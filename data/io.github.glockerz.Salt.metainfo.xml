@@ -21,6 +21,11 @@
 	</supports>
 	<content_rating type="oars-1.1"/>
 	<releases>
+		<release version="2.0.9" date="2026-10-19">
+			<description>
+				<p>With Virtual Desktops on, Studio's login window no longer stays blank when it opens behind other windows, and typing in it no longer lags by seconds: its web pages now draw in software there.</p>
+			</description>
+		</release>
 		<release version="2.0.8" date="2026-10-19">
 			<description>
 				<p>Studio's login window and other web pages use about half the memory: WebView2's processes now share its 300 MB library instead of each loading a copy.</p>

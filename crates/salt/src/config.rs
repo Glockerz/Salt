@@ -310,9 +310,14 @@ impl Config {
 			"D3D11" | "D3D11FL10" => ("gl", "gl"),
 			_ => ("vulkan", "vulkan"),
 		};
+		// Inside a virtual desktop, WebView2's GPU frames reach the screen
+		// only now and then: the login page stays blank if it loaded while
+		// the window was covered, and typed text shows up seconds late.
+		// Drawing in software through Wine's own windows avoids both.
+		let gpu = if self.studio.desktop.is_empty() { "" } else { "--disable-gpu " };
 		// The user's own arguments go last, so they can override these.
 		let args = env.entry("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS".into()).or_default();
-		*args = format!("--in-process-gpu --use-angle={angle} {args}").trim_end().to_owned();
+		*args = format!("{gpu}--in-process-gpu --use-angle={angle} {args}").trim_end().to_owned();
 		env.insert("WINE_D3D_CONFIG".into(), format!("renderer={d3d}"));
 		if self.studio.renderer == "Vulkan" {
 			env.insert("VK_LOADER_LAYERS_ENABLE".into(), "VK_LAYER_SALT_SaltLayer".into());
@@ -372,6 +377,20 @@ mod tests {
 		assert!(cfg.env.is_empty());
 		assert_eq!(cfg.studio.renderer, "DXVK");
 		assert!(Config::parse("[studio]\nrenderer = \"Metal\"\n").is_err());
+	}
+
+	#[test]
+	fn webview_args() {
+		let args = |cfg: &Config| {
+			let pfx = cfg.prefix();
+			pfx.env.iter().find(|(k, _)| k == "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").unwrap().1.clone()
+		};
+		let mut cfg = Config::default();
+		assert_eq!(args(&cfg), "--in-process-gpu --use-angle=vulkan");
+		cfg.studio.desktop = "1920x1080".into();
+		assert_eq!(args(&cfg), "--disable-gpu --in-process-gpu --use-angle=vulkan");
+		cfg.studio.env.insert("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS".into(), "--foo".into());
+		assert_eq!(args(&cfg), "--disable-gpu --in-process-gpu --use-angle=vulkan --foo");
 	}
 
 	#[test]
