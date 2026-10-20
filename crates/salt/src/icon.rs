@@ -1,9 +1,10 @@
 //! Salt's icon comes in a black and a white version.
 //!
-//! The logo inside Salt's windows contrasts with the windows' own
-//! background, which can differ from the desktop's (libadwaita stays
-//! light when the desktop doesn't report a dark preference). The
-//! taskbar and menu icon follows the icon setting; for the menu, which
+//! The icon setting picks the version for the taskbar, the menu and the
+//! logo inside Salt's windows. On "auto", the logo instead contrasts with
+//! the windows' own background, which can differ from the desktop's
+//! (libadwaita stays light when the desktop doesn't report a dark
+//! preference). For the menu, which
 //! shows one installed icon, Salt places the white version in the user's
 //! icon directory (which takes priority over the installed black one)
 //! while it is selected, and removes it otherwise.
@@ -23,9 +24,10 @@ pub enum Variant {
 }
 
 impl Variant {
-	/// The version that stands out on Salt's own window background.
-	pub fn for_windows(sm: &adw::StyleManager) -> Variant {
-		if sm.is_dark() { Variant::White } else { Variant::Black }
+	/// The version for the logo inside Salt's windows: the chosen one,
+	/// or on "auto" the one that stands out on their background.
+	pub fn for_windows(setting: &str, sm: &adw::StyleManager) -> Variant {
+		choose(setting, sm.is_dark())
 	}
 
 	/// Icon name in Salt's resource icon theme.
@@ -167,7 +169,10 @@ pub fn follow(app: &adw::Application, setting: impl Fn() -> String + 'static) ->
 	let sm = app.style_manager();
 	let update = {
 		let sm = sm.clone();
-		move || apply(choose(&setting(), system_dark(&sm)), Variant::for_windows(&sm))
+		move || {
+			let setting = setting();
+			apply(choose(&setting, system_dark(&sm)), Variant::for_windows(&setting, &sm))
+		}
 	};
 	update();
 	let update = std::rc::Rc::new(update);

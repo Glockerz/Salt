@@ -133,12 +133,13 @@ impl Manager {
 		{
 			let w = self.win.clone();
 			let version = u.version.clone();
+			let core = core.clone();
 			add(
 				"about",
 				Box::new(move || {
 					let d = adw::AboutDialog::from_appdata(&resource("metainfo.xml"), Some(&version));
 					let sm = adw::StyleManager::default();
-					d.set_application_icon(crate::icon::Variant::for_windows(&sm).icon_name());
+					d.set_application_icon(crate::icon::Variant::for_windows(&core.cfg().icon, &sm).icon_name());
 					d.present(Some(&w));
 				}),
 			);
